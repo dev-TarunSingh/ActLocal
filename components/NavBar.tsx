@@ -1,9 +1,11 @@
 import React from "react";
 import { TouchableOpacity, StyleSheet, Image } from "react-native";
 import { StatusBar } from "expo-status-bar";
-import { MinusIcon, UserCircleIcon } from "react-native-heroicons/outline";
+import { MagnifyingGlassIcon, UserCircleIcon } from "react-native-heroicons/outline";
 import { useColorScheme } from "react-native";
 import { ThemedView } from "./ThemedView";
+
+
 
 function NavBar() {
   const colorScheme = useColorScheme();
@@ -17,7 +19,7 @@ function NavBar() {
       <StatusBar />
       <ThemedView style={styles.navbar}>
         <TouchableOpacity>
-          <MinusIcon style={[styles.icon, themeTextStyle]} />
+          <MagnifyingGlassIcon style={[styles.icon, themeTextStyle]} />
         </TouchableOpacity>
         <Image
           style={styles.logo}

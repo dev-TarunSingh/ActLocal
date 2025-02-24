@@ -32,10 +32,12 @@ const Register: React.FC = () => {
   const handleSubmit = () => {
     setLoading(true);
     axios
-      .post("http://192.168.43.43.178:3000/signup", {
+      .post("https://actlocal-server.onrender.com/signup", {
         email: email,
         password: password,
         firstName: firstname,
+      }, {
+        timeout: 10000, // Increase timeout to 10 seconds
       })
       .then((res) => {
         alert(res.data.message);

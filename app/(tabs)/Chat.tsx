@@ -1,18 +1,19 @@
 import NavBar from "@/components/NavBar";
 import React from "react";
 import { StatusBar } from "expo-status-bar";
-import { View, Text, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { ThemedText } from "@/components/ThemedText";
+import { ThemedView } from "@/components/ThemedView";
 
 function ChatScreen() {
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <StatusBar
-      />
+      <StatusBar />
       <NavBar />
-      <View style={styles.container}>
-        <Text style={styles.text}>Chat Screen</Text>
-      </View>
+      <ThemedView style={styles.container}>
+        <ThemedText style={styles.text}>Chat Screen</ThemedText>
+      </ThemedView>
     </SafeAreaView>
   );
 }

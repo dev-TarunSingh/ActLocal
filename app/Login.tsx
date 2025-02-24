@@ -23,23 +23,25 @@ const Register: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const { login } = useContext(AuthContext);
+  const { login, setUserProfile } = useContext(AuthContext);
   const colorScheme = useColorScheme();
 
   const router = useRouter();
+  
 
   const handleSubmit = () => {
     setLoading(true);
     axios
-      .post("http://192.168.43.178:3000/login", {
+      .post("https://actlocal-server.onrender.com/login", {
         email: email,
         password: password,
       })
       .then((res) => {
-        const token = res.data.token; // Extract token from response
-        console.log(token);
+        const token = res.data.token;
+        setUserProfile(res.data.user);
+        console.log(res.data.user);
         if (token) {
-          login(token); // Call login with the token
+          login(token, res.data.user); 
         } else {
           console.error("Token is null or undefined");
           alert("Failed to login: Token is missing");

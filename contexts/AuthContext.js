@@ -1,25 +1,26 @@
 import React, { createContext, useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-// Import jwtDecode to decode JSON Web Tokens (JWT) and extract user information
-import jwtDecode from 'jwt-decode';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-    const [userProfile, setUserProfile] = useState(null);
+    const [userProfile, setUserProfile] = useState({});
     const router = useRouter();
 
     useEffect(() => {
         const checkAuth = async () => {
             try {
                 const storedToken = await AsyncStorage.getItem('token');
-                if (storedToken) {
+                const storedUser = await AsyncStorage.getItem('user');
+                if (storedToken && storedUser) {
+                    setUserProfile(JSON.parse(storedUser));
                     router.replace('/');
                 } else {
                     router.replace('/Login');
                 }
             } catch (error) {
+                console.error('Failed to retrieve user from storage:', error);
                 router.replace('/Login');
             }
         };
@@ -27,13 +28,15 @@ export const AuthProvider = ({ children }) => {
         checkAuth();
     }, []);
 
-    const login = async (token) => {
-        if (!token) {
-            console.error('Token is null or undefined');
+    const login = async (token, user) => {
+        if (!token || !user) {
+            console.error('Token or user is null or undefined');
             return;
         }
         try {
+            setUserProfile(user);
             await AsyncStorage.setItem('token', token);
+            await AsyncStorage.setItem('user', JSON.stringify(user));
             router.replace('/');
         } catch (error) {
             console.error('Failed to save user to storage:', error);
@@ -43,6 +46,7 @@ export const AuthProvider = ({ children }) => {
     const logout = async () => {
         try {
             await AsyncStorage.removeItem('token');
+            await AsyncStorage.removeItem('user');
             setUserProfile(null);
             router.replace('/Login');
         } catch (error) {
@@ -51,7 +55,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ userProfile, login, logout }}>
+        <AuthContext.Provider value={{ userProfile, setUserProfile, login, logout }}>
             {children}
         </AuthContext.Provider>
     );

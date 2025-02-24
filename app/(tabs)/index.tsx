@@ -11,6 +11,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import AuthContext from "../../contexts/AuthContext";
 import { useRouter } from "expo-router";
 import { useColorScheme } from "react-native";
+import { ThemedText } from "@/components/ThemedText";
+import { ThemedView } from "@/components/ThemedView";
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -20,7 +22,7 @@ export default function HomeScreen() {
   const themeContainerStyle =
     colorScheme === "light" ? styles.lightContainer : styles.darkContainer;
 
-  const { logout } = useContext(AuthContext);
+  const { logout, userProfile } = useContext(AuthContext);
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -29,16 +31,16 @@ export default function HomeScreen() {
         backgroundColor="#ffffff"
         translucent={false}
       />
-      <View>
+      <ThemedView>
         <NavBar />
         <TouchableOpacity
           style={themeContainerStyle}
           onPress={() => logout()}
         >
-          <Text>Login Out</Text>
+          <ThemedText>Log Out</ThemedText>
         </TouchableOpacity>
-        <Text style={themeTextStyle}>username: </Text>
-      </View>
+        <ThemedText >Username:  {userProfile.firstName}</ThemedText>
+      </ThemedView>
     </SafeAreaView>
   );
 }

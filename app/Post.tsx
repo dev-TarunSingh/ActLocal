@@ -8,7 +8,8 @@ import { ThemedView } from '@/components/ThemedView';
 
 function Post() {
   return (
-    <div>Post</div>
+    <>
+    </>
   )
 }
 
