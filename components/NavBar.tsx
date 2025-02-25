@@ -4,6 +4,7 @@ import { StatusBar } from "expo-status-bar";
 import { MagnifyingGlassIcon, UserCircleIcon } from "react-native-heroicons/outline";
 import { useColorScheme } from "react-native";
 import { ThemedView } from "./ThemedView";
+import { router } from "expo-router";
 
 
 
@@ -26,7 +27,7 @@ function NavBar() {
           source={require("../assets/images/ActLocal-text.png")}
         />
         <TouchableOpacity>
-          <UserCircleIcon style={[styles.icon, themeTextStyle]} />
+          <UserCircleIcon onPress={() => router.push('/Profile')} style={[styles.icon, themeTextStyle]} />
         </TouchableOpacity>
       </ThemedView>
     </ThemedView>
