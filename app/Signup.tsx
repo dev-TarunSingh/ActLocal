@@ -12,7 +12,6 @@ import {
   Pressable,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
-import AuthContext from "../contexts/AuthContext";
 import { useRouter } from "expo-router";
 import axios from "axios";
 import { ThemedText } from "@/components/ThemedText";
