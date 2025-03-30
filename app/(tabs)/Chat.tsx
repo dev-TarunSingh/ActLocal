@@ -55,12 +55,11 @@ const ChatListScreen = () => {
                 })
               }
             >
-              <ThemedText style={{ fontSize: 18 }}>{item._id}</ThemedText>
               <ThemedText style={{ fontSize: 16, fontWeight: "bold" }}>
                 {item.participants?.[0]?.firstName || "Unknown User"}
               </ThemedText>
               <ThemedText style={{ color: "#666" }}>
-                {item.lastMessage?.content || "No messages yet"}
+                {item.lastMessage?.text || "No messages yet"}
               </ThemedText>
             </TouchableOpacity>
           )}
