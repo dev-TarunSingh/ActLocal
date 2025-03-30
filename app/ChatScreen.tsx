@@ -1,9 +1,13 @@
 import React, { useEffect } from "react";
 import { View, Text, TextInput, Button, FlatList } from "react-native";
 import { useChat } from "@/contexts/ChatContext";
+import type { RouteProp } from "@react-navigation/native";
+import { useLocalSearchParams } from "expo-router";
 
-const ChatScreen = ({ route }) => {
-  const { chatroomId } = route.params;
+type ChatScreenRouteProp = RouteProp<{ params: { chatroomId: string } }, "params">;
+
+const ChatScreen = ({ route } : any) => {
+  const { chatroomId } = useLocalSearchParams() as { chatroomId: string };
   const { messages, getMessages, sendMessage } = useChat();
   const [text, setText] = React.useState("");
 

@@ -6,7 +6,6 @@ import {
   StyleSheet,
   RefreshControl,
   ActivityIndicator,
-  Button,
   View,
   Pressable,
 } from "react-native";
@@ -152,7 +151,7 @@ export default function HomeScreen() {
       } else {
         alert("Failed to fetch or create chatroom. Please try again.");
       }
-    } catch (error) {
+    } catch (error : any) {
       console.error("Error creating or fetching chatroom:", error.response?.data || error.message);
       alert("Failed to fetch or create chatroom. Please try again.");
     }
@@ -239,7 +238,13 @@ export default function HomeScreen() {
             </ThemedView>
           ))
         ) : (
-          <ThemedText>Some error!</ThemedText>
+          <ThemedView style={{
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "center"
+          }}>
+            <ThemedText>A Bug caught us! Dont worry rescue team is here!</ThemedText>
+          </ThemedView>
         )}
       </ScrollView>
     </SafeAreaView>

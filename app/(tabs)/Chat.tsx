@@ -55,6 +55,7 @@ const ChatListScreen = () => {
                 })
               }
             >
+              <ThemedText style={{ fontSize: 18 }}>{item._id}</ThemedText>
               <ThemedText style={{ fontSize: 16, fontWeight: "bold" }}>
                 {item.participants?.[0]?.firstName || "Unknown User"}
               </ThemedText>
