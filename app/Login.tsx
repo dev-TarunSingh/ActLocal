@@ -20,7 +20,7 @@ import { ThemedView } from "@/components/ThemedView";
 import { useColorScheme } from "react-native";
 
 const Register: React.FC = () => {
-  const [email, setEmail] = useState("");
+  const [userName, setUserName] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const { login, setUserProfile } = useContext(AuthContext);
@@ -33,7 +33,7 @@ const Register: React.FC = () => {
     setLoading(true);
     axios
       .post("https://actlocal-server.onrender.com/login", {
-        email: email,
+        userName: userName,
         password: password,
       })
       .then((res) => {
@@ -87,10 +87,9 @@ const Register: React.FC = () => {
               <TextInput
                 placeholderTextColor="black"
                 style={styles.input}
-                value={email}
-                onChangeText={setEmail}
-                placeholder="Enter your email"
-                keyboardType="email-address"
+                value={userName}
+                onChangeText={setUserName}
+                placeholder="Username"
               />
             </View>
             <View style={styles.inputContainer}>
@@ -115,7 +114,9 @@ const Register: React.FC = () => {
               disabled={loading}
             >
               {loading ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
+                <ActivityIndicator size="small" color={colorScheme === "light"
+                  ? "#242c40"
+                  : "#FFFF"} />
               ) : (
                 <Text
                   style={[

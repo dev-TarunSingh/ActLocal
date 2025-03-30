@@ -12,7 +12,6 @@ import {
 } from "react-native";
 import NavBar from "../../components/NavBar";
 import { SafeAreaView } from "react-native-safe-area-context";
-import AuthContext from "../../contexts/AuthContext";
 import { useRouter } from "expo-router";
 import { useColorScheme } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
@@ -24,14 +23,18 @@ import {
 } from "react-native-heroicons/outline";
 import { useLocation } from "@/hooks/useLocation";
 import axios from "axios";
+import { useChat } from "@/contexts/ChatContext";
+import AuthContext from "../../contexts/AuthContext";
 
 export default function HomeScreen() {
   const { PermissionGranted, longitude, latitude, getUserLocation, errorMsg } =
     useLocation();
+  const { chatrooms, fetchChatrooms, startChat } = useChat();
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showSummary, setShowSummary] = useState(false);
   const [selectedPost, setSelectedPost] = useState<any>(null);
+  const [currPostChatRoom, setCurrPostChatRoom] = useState("");
 
   interface Post {
     _id: string;
@@ -40,7 +43,7 @@ export default function HomeScreen() {
     servicePrice: number;
     postedBy: {
       firstName: string;
-      _id: string; // Add user ID to the postedBy object
+      _id: string;
     };
   }
 
@@ -82,6 +85,7 @@ export default function HomeScreen() {
     };
     fetchLocationAndPosts();
   }, []);
+  
 
   useEffect(() => {
     if (longitude !== null && latitude !== null) {
@@ -103,17 +107,56 @@ export default function HomeScreen() {
       <SafeAreaView style={styles.container}>
         <ThemedView style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#0000ff" />
-          <ThemedText style={styles.loadingText}>
-            Getting location...
-          </ThemedText>
-          {errorMsg && (
-            <ThemedText style={styles.errorText}>{errorMsg}</ThemedText>
-          )}
+          <ThemedText style={styles.loadingText}>Loading...</ThemedText>
         </ThemedView>
       </SafeAreaView>
     );
   }
-  console.log(posts[0]);
+
+  if (!userProfile) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ThemedView style={styles.loadingContainer}>
+          <ThemedText style={styles.errorText}>
+            User not logged in. Please log in to continue.
+          </ThemedText>
+        </ThemedView>
+      </SafeAreaView>
+    );
+  }
+
+  const onChatPress = async () => {
+    try {
+      console.log("Fetching chatroom...");
+      console.log("User1 (current user):", userProfile?._id);
+      console.log("User2 (post owner):", selectedPost?.postedBy?._id);
+  
+      if (!userProfile || !selectedPost) {
+        alert("User or post data is missing. Please try again.");
+        return;
+      }
+  
+      const res = await axios.post("http://192.168.124.73:3000/api/chat/chatrooms", {
+        user1: userProfile._id,
+        user2: selectedPost.postedBy._id,
+      });
+  
+      console.log("Chatroom response:", res.data);
+  
+      if (res.data?.chatroomId) {
+        setCurrPostChatRoom(res.data.chatroomId);
+        router.push({
+          pathname: "/ChatScreen",
+          params: { chatroomId: res.data.chatroomId },
+        });
+      } else {
+        alert("Failed to fetch or create chatroom. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error creating or fetching chatroom:", error.response?.data || error.message);
+      alert("Failed to fetch or create chatroom. Please try again.");
+    }
+  };
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -125,9 +168,7 @@ export default function HomeScreen() {
       <NavBar />
 
       {showSummary && selectedPost && (
-        <View
-          style={styles.popupOverlay}
-        >
+        <View style={styles.popupOverlay}>
           <ThemedView style={styles.popupContainer}>
             <TouchableOpacity
               style={styles.closeButton}
@@ -155,14 +196,8 @@ export default function HomeScreen() {
                 alignItems: "center",
                 marginTop: 20,
               }}
-              onPress={() =>
-                router.push({
-                  pathname: "/ChatScreen",
-                  params: {
-                    chatroomId: selectedPost.postedBy._id,
-                    chatroomName: selectedPost.postedBy.firstName,
-                  },
-                })
+              onPress={ () =>
+                onChatPress()
               }
             >
               <ThemedText style={{ color: "#fff" }}>Chat</ThemedText>
@@ -204,7 +239,7 @@ export default function HomeScreen() {
             </ThemedView>
           ))
         ) : (
-          <ThemedText>No posts available nearby.</ThemedText>
+          <ThemedText>Some error!</ThemedText>
         )}
       </ScrollView>
     </SafeAreaView>

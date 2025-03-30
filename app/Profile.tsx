@@ -12,13 +12,14 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import AuthContext from "@/contexts/AuthContext";
-import axios from "axios"; // Icons for UI enhancement
+import axios from "axios"; 
 
 const Profile = () => {
-  const { userProfile } = useContext(AuthContext);
+  const { userProfile, logout } = useContext(AuthContext);
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+
   const [updatedProfile, setUpdatedProfile] = useState({ ...userProfile });
 
   useEffect(() => {
@@ -132,7 +133,19 @@ const Profile = () => {
             >
               <ThemedText style={{ color: "#fff" }}>Edit Profile</ThemedText>
             </TouchableOpacity>
+            
           )}
+          <TouchableOpacity
+              style={{
+                backgroundColor: "#EF7A2A",
+                padding: 10,
+                borderRadius: 5,
+                alignItems: "center",
+                marginTop: 20,
+              }}
+              onPress={() => {logout()}}>
+              <ThemedText>Logout</ThemedText>
+            </TouchableOpacity>
         </ThemedView>
         
       </ScrollView>

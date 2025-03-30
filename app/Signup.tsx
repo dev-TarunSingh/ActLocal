@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import {
   View,
   Text,
@@ -22,11 +22,40 @@ const Register: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [firstname, setfirstName] = useState("");
+  const [userName, setUserName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isAvailable, setIsAvailable] = useState<boolean | null>(null);
+  const [checking, setChecking] = useState(false);
 
   const router = useRouter();
   const colorScheme = useColorScheme();
-  
+
+  const checkUsernameAvailability = async (userName: string) => {
+    if (!userName.trim()) {
+      setIsAvailable(null);
+      return;
+    }
+    setChecking(true);
+    try {
+      const response = await fetch(`https://actlocal-server.onrender.com/api/user/check-username/${userName}`); // Ensure this URL is correct
+      const data = await response.json();
+      setIsAvailable(data.available);
+    } catch (error) {
+      console.error("Error checking username:", error);
+      alert("Failed to connect to the server. Please check your network or server URL.");
+      setIsAvailable(null);
+    } finally {
+      setChecking(false);
+    }
+  };
+
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      checkUsernameAvailability(userName);
+    }, 500); // Add a debounce delay of 500ms
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [userName]);
 
   const handleSubmit = () => {
     setLoading(true);
@@ -35,6 +64,7 @@ const Register: React.FC = () => {
         email: email,
         password: password,
         firstName: firstname,
+        userName: userName, 
       }, {
         timeout: 10000, // Increase timeout to 10 seconds
       })
@@ -101,6 +131,22 @@ const Register: React.FC = () => {
             <View style={styles.inputContainer}>
               <TextInput
                 style={styles.input}
+                value={userName}
+                placeholderTextColor="black"
+                onChangeText={setUserName}
+                placeholder="Create a User name"
+              />
+              {checking ? (
+                <Text style={styles.checkingText}>Checking...</Text>
+              ) : isAvailable === true ? (
+                <Text style={styles.availableText}>Username is available</Text>
+              ) : isAvailable === false ? (
+                <Text style={styles.unavailableText}>Username is taken</Text>
+              ) : null}
+            </View>
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.input}
                 value={password}
                 placeholderTextColor="black"
                 onChangeText={setPassword}
@@ -108,6 +154,7 @@ const Register: React.FC = () => {
                 secureTextEntry
               />
             </View>
+            
 
             <TouchableOpacity
               style={[styles.btn, colorScheme === "light" ? {backgroundColor: "#242c40"} : {backgroundColor: "#FFFF"}]}
@@ -203,6 +250,18 @@ const styles = StyleSheet.create({
     color: "#FFAA00",
     fontWeight: "bold",
     fontSize: 16,
+  },
+  checkingText: {
+    color: "blue",
+    marginTop: 5,
+  },
+  availableText: {
+    color: "green",
+    marginTop: 5,
+  },
+  unavailableText: {
+    color: "red",
+    marginTop: 5,
   },
 });
 

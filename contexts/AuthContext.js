@@ -2,10 +2,11 @@ import React, { createContext, useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const AuthContext = createContext();
+const AuthContext = createContext(); // Ensure this is exported correctly
 
 export const AuthProvider = ({ children }) => {
-    const [userProfile, setUserProfile] = useState({});
+    const [userProfile, setUserProfile] = useState(null);
+    const [loading, setLoading] = useState(true);
     const router = useRouter();
 
     useEffect(() => {
@@ -22,6 +23,8 @@ export const AuthProvider = ({ children }) => {
             } catch (error) {
                 console.error('Failed to retrieve user from storage:', error);
                 router.replace('/Login');
+            } finally {
+                setLoading(false);
             }
         };
 
@@ -55,10 +58,10 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ userProfile, setUserProfile, login, logout }}>
+        <AuthContext.Provider value={{ userProfile, setUserProfile, login, logout, loading }}>
             {children}
         </AuthContext.Provider>
     );
 };
 
-export default AuthContext;
+export default AuthContext; // Ensure this is exported
