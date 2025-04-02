@@ -1,50 +1,73 @@
-import React, { useEffect, useState, useContext } from "react";
-import { View, Text, TextInput, Button, FlatList, StyleSheet } from "react-native";
+import React, { useEffect, useState, useContext, useCallback } from "react";
+import { View, Text, TextInput, Button, FlatList, StyleSheet, RefreshControl, ScrollView } from "react-native";
 import { useChat } from "@/contexts/ChatContext";
 import { useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useFocusEffect } from "@react-navigation/native";
 import AuthContext from "@/contexts/AuthContext";
 
-const ChatScreen = () => {
+interface ChatScreenProps {
+  chatroomId?: string;
+}
+
+const ChatScreen = ({ chatroomId: propChatroomId }: ChatScreenProps) => {
   const { userProfile } = useContext(AuthContext);
   const { chatroomId } = useLocalSearchParams();
-  const { getMessages, sendMessage, messages } = useChat();
+  const [refreshing, setRefreshing] = useState(false);
+  const { getMessages, sendMessage, messages, setMessages } = useChat();
   const [text, setText] = useState("");
-  const [sortedMessages, setSortedMessages] = useState(); // Ensure it's initialized as an array
-  
+  const [sortedMessages, setSortedMessages] = useState<any[]>([]);
 
-  console.log(messages);
-
-  useEffect(() => {
-    getMessages(chatroomId)
-      .then((messages) => {
-        console.log("Fetched Messages:", messages); // Debugging log
-        setSortedMessages(
-          [...messages].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
-        );
-      })
-      .catch((err) => console.error("Error fetching messages:", err));
-  }, [1000]);
+  useFocusEffect(
+    useCallback(() => {
+      console.log("Gettimng messages for chatroomId:", chatroomId);
+      getMessages(chatroomId || propChatroomId)
+        
+    }, [chatroomId])
+  );
 
   const handleSendMessage = () => {
     if (text.trim()) {
+      const newMessage = {
+        _id: Math.random().toString(), // Temporary ID until server response
+        chatroomId: chatroomId || propChatroomId,
+        sender: { _id: userProfile._id }, 
+        text,
+        timestamp: new Date().toISOString(), // Local timestamp
+      };
+  
+      // Optimistically update UI
+      setMessages((prev) => ({
+        ...prev,
+        [chatroomId]: [...(prev[chatroomId] || []), newMessage],
+      }));
+  
       sendMessage(chatroomId, text);
-          setText(""); // Clear input after sending
-          getMessages(chatroomId);
+      setText("");
     }
   };
 
+  function handleRefresh(): void {
+    getMessages(chatroomId)
+  }
+
   return (
     <SafeAreaView style={{ flex: 1 }}>
+      <ScrollView
+              contentContainerStyle={{ flexGrow: 1 }}
+              refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+              }
+            >
       <View style={{ flex: 1, padding: 10 }}>
         <FlatList
-          data={messages}
+          data={messages[chatroomId] || []}
           keyExtractor={(item) => item._id} // Ensure each item has a unique _id
           renderItem={({ item }) => (
             <View
               style={[
                 styles.messageContainer,
-                item.sender === userProfile._id ? styles.userMessage : styles.otherMessage,
+                item.sender._id === userProfile._id ? styles.userMessage : styles.otherMessage,
               ]}
             >
               <Text
@@ -66,6 +89,7 @@ const ChatScreen = () => {
         />
         <Button title="Send" onPress={handleSendMessage} />
       </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -79,7 +103,7 @@ const styles = StyleSheet.create({
   },
   userMessage: {
     alignSelf: "flex-end",
-    backgroundColor: "orange",
+    backgroundColor: "#EF7A2A",
   },
   otherMessage: {
     alignSelf: "flex-start",
@@ -89,7 +113,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   userMessageText: {
-    color: "black",
+    color: "white",
   },
   otherMessageText: {
     color: "black",

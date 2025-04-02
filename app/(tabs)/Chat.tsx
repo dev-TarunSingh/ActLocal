@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext, useCallback } from "react";
-import { View, Text, FlatList, TouchableOpacity, Button } from "react-native";
+import { View, Text, FlatList, TouchableOpacity, Button, RefreshControl, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
 import AuthContext from "@/contexts/AuthContext";
@@ -11,10 +11,11 @@ import navigation from "expo-router";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 
-const socket = io("http://192.158.124.73:3000");
+const socket = io("https://actlocal-server.onrender.com");
 
 const ChatListScreen = () => {
   const { chatrooms, fetchChatrooms } = useChat();
+  const [refreshing, setRefreshing] = useState(false);
   const router = useRouter();
 
   useFocusEffect(
@@ -27,10 +28,22 @@ const ChatListScreen = () => {
     console.log("Updated Chatrooms:", chatrooms);
   }, [chatrooms]);
 
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchChatrooms()
+      .then(() => setRefreshing(false))
+      .catch(() => setRefreshing(false));
+  };
+
   return (
     <SafeAreaView>
       <NavBar />
-      <View>
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1 }}
+        refreshControl={
+          <RefreshControl refreshing={false} onRefresh={handleRefresh} />
+        }
+      >
         <FlatList
           data={chatrooms}
           keyExtractor={(item) => item._id}
@@ -64,7 +77,7 @@ const ChatListScreen = () => {
             </TouchableOpacity>
           )}
         />
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };

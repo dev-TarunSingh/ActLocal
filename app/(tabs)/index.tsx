@@ -105,7 +105,7 @@ export default function HomeScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <ThemedView style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#0000ff" />
+          <ActivityIndicator size="large" color="#EF7A2A" />
           <ThemedText style={styles.loadingText}>Loading...</ThemedText>
         </ThemedView>
       </SafeAreaView>
@@ -135,7 +135,7 @@ export default function HomeScreen() {
         return;
       }
   
-      const res = await axios.post("http://192.168.124.73:3000/api/chat/chatrooms", {
+      const res = await axios.post("https://actlocal-server.onrender.com/api/chat/chatrooms", {
         user1: userProfile._id,
         user2: selectedPost.postedBy._id,
       });
@@ -167,14 +167,9 @@ export default function HomeScreen() {
       <NavBar />
 
       {showSummary && selectedPost && (
-        <View style={styles.popupOverlay}>
+        <ThemedView style={styles.popupOverlay}>
           <ThemedView style={styles.popupContainer}>
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={() => setShowSummary(false)}
-            >
-              <XMarkIcon size={24} />
-            </TouchableOpacity>
+            
             <ThemedText style={styles.popupTitle}>
               {selectedPost.name}
             </ThemedText>
@@ -187,13 +182,19 @@ export default function HomeScreen() {
             <ThemedText style={styles.popupPostedBy}>
               Posted by: {selectedPost.postedBy.firstName}
             </ThemedText>
+            <View style={styles.btnContainer}>
+            <TouchableOpacity
+              onPress={() => setShowSummary(false)}
+            >
+              <ThemedText style={styles.closeButton}>Close</ThemedText>
+            </TouchableOpacity>
             <Pressable
               style={{
                 backgroundColor: "#EF7A2A",
                 padding: 10,
-                borderRadius: 5,
+                borderRadius: 50,
                 alignItems: "center",
-                marginTop: 20,
+                width: "80%",
               }}
               onPress={ () =>
                 onChatPress()
@@ -201,49 +202,67 @@ export default function HomeScreen() {
             >
               <ThemedText style={{ color: "#fff" }}>Chat</ThemedText>
             </Pressable>
+            </View>
           </ThemedView>
-        </View>
+        </ThemedView>
       )}
 
       <ScrollView
-        contentContainerStyle={{ flexGrow: 1 }}
+        contentContainerStyle={{ flexGrow: 1, zIndex: 1 }}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
       >
-        <FloatingAction
+        {/* <FloatingAction
           actions={actions}
-          onPressItem={(name) => router.push("/Post")}
-        />
+          color="#EF7A2A"
+          onPressItem={(name) => {
+        if (name === "AddPost") {
+          router.push("/Post");
+        }
+          }}
+          overrideWithAction={true}
+          iconHeight={24}
+          iconWidth={24}
+          position="right"
+          distanceToEdge={20}
+          buttonSize={60}
+          style={{ zIndex: 1000000 }}
+        /> */}
 
         {PermissionGranted === false ? (
-          <ThemedText>{errorMsg}</ThemedText>
+          <ThemedText style={{ zIndex: 2 }}>{errorMsg}</ThemedText>
         ) : null}
         {posts.length > 0 ? (
           posts.map((post) => (
-            <ThemedView style={styles.postItem} key={post._id}>
-              <Pressable
-                onPress={() => {
-                  setSelectedPost(post);
-                  setShowSummary(true);
-                }}
-              >
-                <ThemedText style={styles.postTitle}>{post.name}</ThemedText>
-                <ThemedText style={styles.postDescription}>
-                  {post.description}
-                </ThemedText>
-                <ThemedText>₹ {post.servicePrice}</ThemedText>
-                <ThemedText>{post.postedBy.firstName}</ThemedText>
-              </Pressable>
-            </ThemedView>
+        <ThemedView style={[styles.postItem, { zIndex: 2 }]} key={post._id}>
+          <Pressable
+            onPress={() => {
+          setSelectedPost(post);
+          setShowSummary(true);
+            }}
+          >
+            <ThemedText style={styles.postTitle}>{post.name}</ThemedText>
+            <ThemedText style={styles.postDescription}>
+          {post.description}
+            </ThemedText>
+            <ThemedText>₹ {post.servicePrice}</ThemedText>
+            <ThemedText>{post.postedBy.firstName}</ThemedText>
+          </Pressable>
+        </ThemedView>
           ))
         ) : (
-          <ThemedView style={{
-            flex: 1,
-            alignItems: "center",
-            justifyContent: "center"
-          }}>
-            <ThemedText>A Bug caught us! Dont worry rescue team is here!</ThemedText>
+          <ThemedView
+        style={{
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 2,
+        }}
+          >
+        <ThemedText>
+          A Bug caught us! Dont worry rescue team is here!
+        </ThemedText>
           </ThemedView>
         )}
       </ScrollView>
@@ -289,20 +308,19 @@ const styles = StyleSheet.create({
   },
   popupOverlay: {
     position: "absolute",
-    top: 0,
+    top: 0, // Changed from bottom: 0 to top: 0
     left: 0,
     right: 0,
-    bottom: 0,
+    bottom: 0, // Added to cover the entire screen
     backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: "flex-end",
     zIndex: 1000,
   },
   popupContainer: {
     padding: 20,
-    width: "90%",
-    height: "80%",
-    borderRadius: 10,
+    width: "100%",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     elevation: 5,
   },
   popupTitle: {
@@ -325,8 +343,25 @@ const styles = StyleSheet.create({
     fontStyle: "italic",
   },
   closeButton: {
-    position: "absolute",
-    top: 10,
-    right: 10,
+    backgroundColor: "#EF7A2A",
+    padding: 10,
+    borderRadius: 50,
+    alignItems: "center",
+  },
+  btnContainer: {
+    flexDirection: "row",
+    alignContent: "center",
+    alignItems: "center",
+    width: "100%",
+    justifyContent: "space-between",
+    marginTop: 20,
+  },
+  swipeDownIndicator: {
+    width: 40,
+    height: 5,
+    backgroundColor: "#ccc",
+    borderRadius: 2.5,
+    alignSelf: "center",
+    marginVertical: 10,
   },
 });

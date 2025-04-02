@@ -7,6 +7,7 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import Feather from '@expo/vector-icons/Feather';
 import BlurTabBarBackground from '@/components/ui/TabBarBackground.ios';
 
 export default function TabLayout() {
@@ -34,6 +35,13 @@ export default function TabLayout() {
         options={{
           title: 'Home',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="Post"
+        options={{
+          title: 'Post',
+          tabBarIcon: ({ color }) => <Feather size={28} name="upload-cloud" color={color} />,
         }}
       />
       <Tabs.Screen

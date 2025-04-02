@@ -16,7 +16,7 @@ export const ChatProvider = ({ children }) => {
   useEffect(() => {
     if (loading || !userProfile) return; // Wait for userProfile to load
 
-    const newSocket = io("http://192.168.124.73:3000");
+    const newSocket = io("https://actlocal-server.onrender.com");
     setSocket(newSocket);
 
     newSocket.emit("join", userProfile._id);
@@ -26,7 +26,7 @@ export const ChatProvider = ({ children }) => {
       if (message && message.chatroomId) {
         setMessages((prev) => ({
           ...prev,
-          [message.chatroomId]: [...(prev[message.chatroomId] || []), message],
+          [message.chatroomId]: [...(prev[message.chatroomId] || []), message], // Append new messages
         }));
       } else {
         console.error("Invalid message received:", message);
@@ -55,7 +55,7 @@ export const ChatProvider = ({ children }) => {
       console.log("Fetching Chatrooms for user:", userProfile._id);
 
       const res = await axios.get(
-        `http://192.168.124.73:3000/api/chat/${userProfile._id}`
+        `https://actlocal-server.onrender.com/api/chat/${userProfile._id}`
       );
 
       if (Array.isArray(res.data)) {
@@ -73,11 +73,14 @@ export const ChatProvider = ({ children }) => {
   const getMessages = async (chatroomId) => {
     try {
       const res = await axios.get(
-        `http://192.168.124.73:3000/api/chat/messages/${chatroomId}`
+        `https://actlocal-server.onrender.com/api/chat/messages/${chatroomId}`
       );
 
       const messagesArray = Array.isArray(res.data) ? res.data : [];
-      setMessages(messagesArray);
+      setMessages((prev) => ({
+        ...prev,
+        [chatroomId]: messagesArray, // Replace with the fetched messages
+      }));
     } catch (error) {
       console.error("Error fetching messages:", error);
       // Ensure chatroomId key exists even on error
@@ -93,7 +96,7 @@ export const ChatProvider = ({ children }) => {
 
   return (
     <ChatContext.Provider
-      value={{ chatrooms, messages, fetchChatrooms, getMessages, sendMessage }}
+      value={{ chatrooms, messages, fetchChatrooms, getMessages, sendMessage, setMessages }}
     >
       {children}
     </ChatContext.Provider>
