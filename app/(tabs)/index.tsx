@@ -15,7 +15,6 @@ import { useRouter } from "expo-router";
 import { useColorScheme } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { FloatingAction } from "react-native-floating-action";
 import {
   ArrowUpOnSquareStackIcon,
   XMarkIcon,
@@ -90,16 +89,9 @@ export default function HomeScreen() {
     if (longitude !== null && latitude !== null) {
       fetchPosts();
     }
-  }, [longitude, latitude]);
+  }, [longitude, latitude, PermissionGranted]);
 
-  const actions = [
-    {
-      text: "Add Post",
-      icon: <ArrowUpOnSquareStackIcon size={24} />,
-      name: "AddPost",
-      position: 2,
-    },
-  ];
+  
 
   if (loading) {
     return (
@@ -295,7 +287,7 @@ const styles = StyleSheet.create({
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
-    shadowRadius: 4,
+    shadowRadius: 24,
     elevation: 3,
   },
   postTitle: {

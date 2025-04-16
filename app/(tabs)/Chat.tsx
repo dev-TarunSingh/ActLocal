@@ -7,9 +7,9 @@ import io from "socket.io-client";
 import NavBar from "@/components/NavBar";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useChat } from "@/contexts/ChatContext";
-import navigation from "expo-router";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
+import { useColorScheme } from "react-native";
 
 const socket = io("https://actlocal-server.onrender.com");
 
@@ -17,10 +17,11 @@ const ChatListScreen = () => {
   const { chatrooms, fetchChatrooms } = useChat();
   const [refreshing, setRefreshing] = useState(false);
   const router = useRouter();
+  const colorScheme = useColorScheme();
 
   useFocusEffect(
     useCallback(() => {
-      fetchChatrooms(); // Fetch chatrooms when screen is focused
+      fetchChatrooms();
     }, [])
   );
 
@@ -34,6 +35,20 @@ const ChatListScreen = () => {
       .then(() => setRefreshing(false))
       .catch(() => setRefreshing(false));
   };
+
+  useEffect(() => {
+    socket.on("message", (message) => {
+      console.log("Received message:", message);
+      // Update chatrooms or messages state here if necessary
+    });
+
+    return () => {
+      socket.off("message");
+    };
+  }, []);
+
+  const themecolor = colorScheme === "dark" ? "#333" : "#fff";
+  const textColor = colorScheme === "dark" ? "#fff" : "#000";
 
   return (
     <SafeAreaView>
@@ -52,11 +67,9 @@ const ChatListScreen = () => {
               style={{
                 padding: 16,
                 margin: 10,
-                borderRadius: 10,
-                borderBottomColor: "#ccc",
+                borderRadius: 24,
+                backgroundColor: themecolor,
                 shadowColor: "#000",
-                backgroundColor: "#fff",
-                shadowOffset: { width: 0, height: 2 },
                 shadowOpacity: 0.2,
                 shadowRadius: 4,
                 elevation: 3,

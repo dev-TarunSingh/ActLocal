@@ -37,12 +37,16 @@ const Register: React.FC = () => {
     }
     setChecking(true);
     try {
-      const response = await fetch(`https://actlocal-server.onrender.com/api/user/check-username/${userName}`); // Ensure this URL is correct
+      const response = await fetch(
+        `https://actlocal-server.onrender.com/api/user/check-username/${userName}`
+      ); // Ensure this URL is correct
       const data = await response.json();
       setIsAvailable(data.available);
     } catch (error) {
       console.error("Error checking username:", error);
-      alert("Failed to connect to the server. Please check your network or server URL.");
+      alert(
+        "Failed to connect to the server. Please check your network or server URL."
+      );
       setIsAvailable(null);
     } finally {
       setChecking(false);
@@ -60,14 +64,18 @@ const Register: React.FC = () => {
   const handleSubmit = () => {
     setLoading(true);
     axios
-      .post("https://actlocal-server.onrender.com/signup", {
-        email: email,
-        password: password,
-        firstName: firstname,
-        userName: userName, 
-      }, {
-        timeout: 10000, // Increase timeout to 10 seconds
-      })
+      .post(
+        "https://actlocal-server.onrender.com/signup",
+        {
+          email: email,
+          password: password,
+          firstName: firstname,
+          userName: userName,
+        },
+        {
+          timeout: 10000, // Increase timeout to 10 seconds
+        }
+      )
       .then((res) => {
         alert(res.data.message);
       })
@@ -94,19 +102,18 @@ const Register: React.FC = () => {
         style={styles.container}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
-        
         <StatusBar backgroundColor="#FFAA00" style="dark" />
         <View style={styles.headText}>
           <Text style={styles.header}>Sign Up</Text>
           <Text style={styles.breif}>Sign up to use our Services!</Text>
         </View>
         <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <TouchableOpacity
-          style={styles.link}
-          onPress={() => router.push("/Login")}
-        >
-          <ThemedText style={styles.linkText}>Login</ThemedText>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.link}
+            onPress={() => router.push("/Login")}
+          >
+            <ThemedText style={styles.linkText}>Login</ThemedText>
+          </TouchableOpacity>
           <ThemedView style={styles.formContainer}>
             <View style={styles.inputContainer}>
               <TextInput
@@ -154,19 +161,33 @@ const Register: React.FC = () => {
                 secureTextEntry
               />
             </View>
-            
 
             <TouchableOpacity
-              style={[styles.btn, colorScheme === "light" ? {backgroundColor: "#242c40"} : {backgroundColor: "#FFFF"}]}
+              style={[
+                styles.btn,
+                colorScheme === "light"
+                  ? { backgroundColor: "#242c40" }
+                  : { backgroundColor: "#FFFF" },
+              ]}
               onPress={handleSubmit}
               disabled={loading}
             >
               {loading ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
+                <ActivityIndicator
+                  size="small"
+                  color={colorScheme === "light" ? "#FFFFF" : "#00000"}
+                />
               ) : (
-                <Text style={[styles.btnText,  colorScheme === "light"
-                  ? { color: "#FFFFFF" }
-                  : { color: "#000000" }]}>Sign Up</Text>
+                <Text
+                  style={[
+                    styles.btnText,
+                    colorScheme === "light"
+                      ? { color: "#FFFFFF" }
+                      : { color: "#000000" },
+                  ]}
+                >
+                  Sign Up
+                </Text>
               )}
             </TouchableOpacity>
           </ThemedView>

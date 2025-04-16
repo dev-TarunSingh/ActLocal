@@ -19,10 +19,10 @@ import TextInput from "react-native-text-input-interactive";
 import { useLocation } from "@/hooks/useLocation";
 
 function Post() {
-  const { PermissionGranted, longitude, latitude, errorMsg, getUserLocation } = useLocation();
+  const { PermissionGranted, longitude, latitude, errorMsg, getUserLocation } =
+    useLocation();
   const colorScheme = useColorScheme();
   const { userProfile } = useContext(AuthContext);
-  const TextInputColor = colorScheme === "light" ? "#000" : "#fff";
   const [loading, setLoading] = useState(false);
   const postedBy = userProfile._id;
   const [description, setDescription] = useState("");
@@ -34,10 +34,13 @@ function Post() {
   const [coordinates, setCoordinates] = useState<[number, number] | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
+  const themetext = colorScheme === "dark" ? "#fff" : "#000";
+  const themecolor = colorScheme === "dark" ? "#333" : "#fff";
+
   useEffect(() => {
     getUserLocation();
   }, []);
-
+  
   useEffect(() => {
     if (longitude !== null && latitude !== null) {
       setCoordinates([longitude, latitude]);
@@ -56,22 +59,41 @@ function Post() {
       return;
     }
 
+    if (!name || !description || !category || !servicePrice) {
+      Alert.alert("Error", "All fields are required");
+      return;
+    }
+
+    if (isNaN(parseFloat(servicePrice))) {
+      Alert.alert("Error", "Price must be a valid number");
+      return;
+    }
+
+    setLoading(true); // Start loading
     try {
-      const response = await axios.post("https://actlocal-server.onrender.com/services", {
-        name,
-        description,
-        category,
-        servicePrice: parseFloat(servicePrice),
-        location: {
-          type: "Point",
-          coordinates,
-        },
-        postedBy: postedBy
-      });
+      const response = await axios.post(
+        "https://actlocal-server.onrender.com/services",
+        {
+          name,
+          description,
+          category,
+          servicePrice: parseFloat(servicePrice),
+          location: {
+            type: "Point",
+            coordinates,
+          },
+          postedBy: postedBy,
+        }
+      );
       Alert.alert("Success", "Post created successfully");
       navigation.goBack();
     } catch (error) {
-      Alert.alert("Error", `Failed to create Post. check your details and try again`);
+      Alert.alert(
+        "Error",
+        `Failed to create Post. Check your details and try again`
+      );
+    } finally {
+      setLoading(false); // Stop loading
     }
   };
 
@@ -80,9 +102,24 @@ function Post() {
       <SafeAreaView style={styles.container}>
         <ThemedView style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#0000ff" />
-          <ThemedText style={styles.loadingText}>Getting location...</ThemedText>
+          <ThemedText style={styles.loadingText}>
+            Getting location...
+          </ThemedText>
           <Button title="Refresh Location" onPress={handleRefresh} />
-          {errorMsg && <ThemedText style={styles.errorText}>{errorMsg}</ThemedText>}
+          {errorMsg && (
+            <ThemedText style={styles.errorText}>{errorMsg}</ThemedText>
+          )}
+        </ThemedView>
+      </SafeAreaView>
+    );
+  }
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ThemedView style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#EF7A2A" />
+          <ThemedText style={styles.loadingText}>Creating Post...</ThemedText>
         </ThemedView>
       </SafeAreaView>
     );
@@ -99,33 +136,43 @@ function Post() {
           <ThemedText style={styles.headerText}>Post a Service</ThemedText>
           <TextInput
             mainColor="#EF7A2A"
-            style={styles.input}
-            animatedPlaceholderTextColor={TextInputColor}
+            style={[styles.input, { backgroundColor: themecolor }]}
+            animatedPlaceholderTextColor={themetext}
             onChangeText={setName}
+            value={name}
             placeholder="Service Name"
           />
           <TextInput
             mainColor="#EF7A2A"
             style={styles.input}
-            animatedPlaceholderTextColor={TextInputColor}
+            animatedPlaceholderTextColor={themetext}
             onChangeText={setDescription}
+            value={description}
             placeholder="Description"
           />
           <TextInput
             mainColor="#EF7A2A"
             style={styles.input}
-            animatedPlaceholderTextColor={TextInputColor}
+            animatedPlaceholderTextColor={themetext}
             onChangeText={setCategory}
-            placeholder="category"
+            value={category}
+            placeholder="Category"
           />
           <TextInput
             mainColor="#EF7A2A"
             style={styles.input}
-            animatedPlaceholderTextColor={TextInputColor}
+            animatedPlaceholderTextColor={themetext}
             onChangeText={setServicePrice}
+            value={servicePrice}
             placeholder="Price"
           />
-          
+          {loading && (
+            <ActivityIndicator
+              size="large"
+              color="#EF7A2A"
+              style={{ marginVertical: 16 }}
+            />
+          )}
           <Pressable
             style={({ pressed }) => [
               { backgroundColor: pressed ? "#EF7A2A" : "#EF7A2A" },
@@ -137,7 +184,7 @@ function Post() {
           >
             <ThemedView>
               <ThemedText
-                style={{ backgroundColor: "#EF7A2A", color: "white" }}
+                style={{ backgroundColor: "#EF7A2A", color: themetext }}
               >
                 Post
               </ThemedText>
@@ -157,6 +204,7 @@ const styles = StyleSheet.create({
   },
   form: {
     padding: 16,
+    justifyContent: "center",
   },
   headerText: {
     fontSize: 24,
