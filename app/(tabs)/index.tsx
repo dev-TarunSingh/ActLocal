@@ -15,70 +15,72 @@ import { useRouter } from "expo-router";
 import { useColorScheme } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import {
-  ArrowUpOnSquareStackIcon,
-  XMarkIcon,
-} from "react-native-heroicons/outline";
 import { useLocation } from "@/hooks/useLocation";
 import axios from "axios";
 import { useChat } from "@/contexts/ChatContext";
 import AuthContext from "../../contexts/AuthContext";
 
 export default function HomeScreen() {
-  const { PermissionGranted, longitude, latitude, getUserLocation, errorMsg } =
-    useLocation();
+  const { PermissionGranted, longitude, latitude, getUserLocation, errorMsg } = useLocation();
   const { chatrooms, fetchChatrooms, startChat } = useChat();
-  const [refreshing, setRefreshing] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const colorScheme = useColorScheme();
+  const { userProfile } = useContext<any>(AuthContext);
+
   const [showSummary, setShowSummary] = useState(false);
   const [selectedPost, setSelectedPost] = useState<any>(null);
   const [currPostChatRoom, setCurrPostChatRoom] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [posts, setPosts] = useState<any[]>([]);
+  const [locationError, setLocationError] = useState<string | null>(null);
 
-  interface Post {
-    _id: string;
-    name: string;
-    description: string;
-    servicePrice: number;
-    postedBy: {
-      firstName: string;
-      _id: string;
-    };
-  }
+  const checkInternetConnection = async () => {
+    try {
+      const response = await fetch("https://www.google.com", { method: "HEAD" });
+      if (!response.ok) {
+        setLocationError("No internet connection available.");
+      }
+    } catch (error) {
+      setLocationError("No internet connection available.");
+    }
+  };
 
-  const [posts, setPosts] = useState<Post[]>([]);
-  const router = useRouter();
-  const colorScheme = useColorScheme();
-
-  const { userProfile } = useContext<any>(AuthContext);
-
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    await getUserLocation();
-    await fetchPosts();
-    setRefreshing(false);
+  const fetchLocationAndHandleErrors = async () => {
+    try {
+      await checkInternetConnection();
+      await getUserLocation();
+      if (longitude === null || latitude === null) {
+        setLocationError("Your location is not available. Please enable location services.");
+      } else {
+        setLocationError(null);
+      }
+    } catch (error: any) {
+      setLocationError(error.message || "An error occurred while fetching location.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchPosts = async () => {
     if (longitude !== null && latitude !== null) {
       try {
-        const response = await axios.post(
-          "https://actlocal-server.onrender.com/services/nearby",
-          {
-            longitude,
-            latitude,
-          }
-        );
+        const response = await axios.post("https://actlocal-server.onrender.com/services/nearby", {
+          longitude,
+          latitude,
+        });
 
         const validPosts = Array.isArray(response.data.services)
-          ? response.data.services.filter((post: any) =>
-              post &&
-              typeof post._id === "string" &&
-              typeof post.name === "string" &&
-              typeof post.description === "string" &&
-              typeof post.servicePrice === "number" &&
-              post.postedBy &&
-              typeof post.postedBy.firstName === "string" &&
-              typeof post.postedBy._id === "string"
+          ? response.data.services.filter(
+              (post: any) =>
+                post &&
+                typeof post._id === "string" &&
+                typeof post.name === "string" &&
+                typeof post.description === "string" &&
+                typeof post.servicePrice === "number" &&
+                post.postedBy &&
+                typeof post.postedBy.firstName === "string" &&
+                typeof post.postedBy._id === "string"
             )
           : [];
 
@@ -89,6 +91,17 @@ export default function HomeScreen() {
     }
   };
 
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await getUserLocation();
+    await fetchPosts();
+    setRefreshing(false);
+  };
+
+  useEffect(() => {
+    fetchLocationAndHandleErrors();
+  }, []);
+
   useEffect(() => {
     const fetchLocationAndPosts = async () => {
       await getUserLocation();
@@ -97,7 +110,6 @@ export default function HomeScreen() {
     };
     fetchLocationAndPosts();
   }, []);
-  
 
   useEffect(() => {
     if (longitude !== null && latitude !== null) {
@@ -105,14 +117,48 @@ export default function HomeScreen() {
     }
   }, [longitude, latitude, PermissionGranted]);
 
-  
+  const onChatPress = async () => {
+    try {
+      const res = await axios.post("https://actlocal-server.onrender.com/api/chat/chatrooms", {
+        user1: userProfile._id,
+        user2: selectedPost.postedBy._id,
+      });
 
+      if (res.data?.chatroomId) {
+        setCurrPostChatRoom(res.data.chatroomId);
+        router.push({
+          pathname: "/ChatScreen",
+          params: { chatroomId: res.data.chatroomId },
+        });
+      } else {
+        alert("Failed to fetch or create chatroom. Please try again.");
+      }
+    } catch (error: any) {
+      console.error("Error creating or fetching chatroom:", error.response?.data || error.message);
+      alert("Failed to fetch or create chatroom. Please try again.");
+    }
+  };
+
+  // RENDERING
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
         <ThemedView style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#EF7A2A" />
           <ThemedText style={styles.loadingText}>Loading...</ThemedText>
+        </ThemedView>
+      </SafeAreaView>
+    );
+  }
+
+  if (locationError) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ThemedView style={styles.loadingContainer}>
+          <ThemedText style={styles.errorText}>{locationError}</ThemedText>
+          <TouchableOpacity onPress={fetchLocationAndHandleErrors}>
+            <ThemedText style={styles.errorText}>Retry</ThemedText>
+          </TouchableOpacity>
         </ThemedView>
       </SafeAreaView>
     );
@@ -130,84 +176,36 @@ export default function HomeScreen() {
     );
   }
 
-  const onChatPress = async () => {
-    try {
-      console.log("Fetching chatroom...");
-      console.log("User1 (current user):", userProfile?._id);
-      console.log("User2 (post owner):", selectedPost?.postedBy?._id);
-  
-      if (!userProfile || !selectedPost) {
-        alert("User or post data is missing. Please try again.");
-        return;
-      }
-  
-      const res = await axios.post("https://actlocal-server.onrender.com/api/chat/chatrooms", {
-        user1: userProfile._id,
-        user2: selectedPost.postedBy._id,
-      });
-  
-      console.log("Chatroom response:", res.data);
-  
-      if (res.data?.chatroomId) {
-        setCurrPostChatRoom(res.data.chatroomId);
-        router.push({
-          pathname: "/ChatScreen",
-          params: { chatroomId: res.data.chatroomId },
-        });
-      } else {
-        alert("Failed to fetch or create chatroom. Please try again.");
-      }
-    } catch (error : any) {
-      console.error("Error creating or fetching chatroom:", error.response?.data || error.message);
-      alert("Failed to fetch or create chatroom. Please try again.");
-    }
-  };
-
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <StatusBar
-        barStyle="dark-content"
-        backgroundColor="#ffffff"
-        translucent={false}
-      />
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" translucent={false} />
       <NavBar />
 
       {showSummary && selectedPost && (
         <ThemedView style={styles.popupOverlay}>
           <ThemedView style={styles.popupContainer}>
-            
-            <ThemedText style={styles.popupTitle}>
-              {selectedPost.name}
-            </ThemedText>
-            <ThemedText style={styles.popupDescription}>
-              {selectedPost.description}
-            </ThemedText>
-            <ThemedText style={styles.popupPrice}>
-              ₹ {selectedPost.servicePrice}
-            </ThemedText>
+            <ThemedText style={styles.popupTitle}>{selectedPost.name}</ThemedText>
+            <ThemedText style={styles.popupDescription}>{selectedPost.description}</ThemedText>
+            <ThemedText style={styles.popupPrice}>₹ {selectedPost.servicePrice}</ThemedText>
             <ThemedText style={styles.popupPostedBy}>
               Posted by: {selectedPost.postedBy.firstName}
             </ThemedText>
             <View style={styles.btnContainer}>
-            <TouchableOpacity
-              onPress={() => setShowSummary(false)}
-            >
-              <ThemedText style={styles.closeButton}>Close</ThemedText>
-            </TouchableOpacity>
-            <Pressable
-              style={{
-                backgroundColor: "#EF7A2A",
-                padding: 10,
-                borderRadius: 50,
-                alignItems: "center",
-                width: "80%",
-              }}
-              onPress={ () =>
-                onChatPress()
-              }
-            >
-              <ThemedText style={{ color: "#fff" }}>Chat</ThemedText>
-            </Pressable>
+              <TouchableOpacity onPress={() => setShowSummary(false)}>
+                <ThemedText style={styles.closeButton}>Close</ThemedText>
+              </TouchableOpacity>
+              <Pressable
+                style={{
+                  backgroundColor: "#EF7A2A",
+                  padding: 10,
+                  borderRadius: 50,
+                  alignItems: "center",
+                  width: "80%",
+                }}
+                onPress={onChatPress}
+              >
+                <ThemedText style={{ color: "#fff" }}>Chat</ThemedText>
+              </Pressable>
             </View>
           </ThemedView>
         </ThemedView>
@@ -215,60 +213,37 @@ export default function HomeScreen() {
 
       <ScrollView
         contentContainerStyle={{ flexGrow: 1, zIndex: 1 }}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
       >
-        {/* <FloatingAction
-          actions={actions}
-          color="#EF7A2A"
-          onPressItem={(name) => {
-        if (name === "AddPost") {
-          router.push("/Post");
-        }
-          }}
-          overrideWithAction={true}
-          iconHeight={24}
-          iconWidth={24}
-          position="right"
-          distanceToEdge={20}
-          buttonSize={60}
-          style={{ zIndex: 1000000 }}
-        /> */}
-
         {PermissionGranted === false ? (
           <ThemedText style={{ zIndex: 2 }}>{errorMsg}</ThemedText>
         ) : null}
         {posts.length > 0 ? (
           posts.map((post) => (
-        <ThemedView style={[styles.postItem, { zIndex: 2 }]} key={post._id}>
-          <Pressable
-            onPress={() => {
-          setSelectedPost(post);
-          setShowSummary(true);
-            }}
-          >
-            <ThemedText style={styles.postTitle}>{post.name}</ThemedText>
-            <ThemedText style={styles.postDescription}>
-          {post.description}
-            </ThemedText>
-            <ThemedText>₹ {post.servicePrice}</ThemedText>
-            <ThemedText>{post.postedBy.firstName}</ThemedText>
-          </Pressable>
-        </ThemedView>
+            <ThemedView style={[styles.postItem, { zIndex: 2 }]} key={post._id}>
+              <Pressable
+                onPress={() => {
+                  setSelectedPost(post);
+                  setShowSummary(true);
+                }}
+              >
+                <ThemedText style={styles.postTitle}>{post.name}</ThemedText>
+                <ThemedText style={styles.postDescription}>{post.description}</ThemedText>
+                <ThemedText>₹ {post.servicePrice}</ThemedText>
+                <ThemedText>{post.postedBy.firstName}</ThemedText>
+              </Pressable>
+            </ThemedView>
           ))
         ) : (
           <ThemedView
-        style={{
-          flex: 1,
-          alignItems: "center",
-          justifyContent: "center",
-          zIndex: 2,
-        }}
+            style={{
+              flex: 1,
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 2,
+            }}
           >
-        <ThemedText>
-          A Bug caught us! Dont worry rescue team is here!
-        </ThemedText>
+            <ThemedText>A Bug caught us! Don’t worry, rescue team is here!</ThemedText>
           </ThemedView>
         )}
       </ScrollView>
@@ -314,10 +289,10 @@ const styles = StyleSheet.create({
   },
   popupOverlay: {
     position: "absolute",
-    top: 0, // Changed from bottom: 0 to top: 0
+    top: 0,
     left: 0,
     right: 0,
-    bottom: 0, // Added to cover the entire screen
+    bottom: 0,
     backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "flex-end",
     zIndex: 1000,
@@ -356,18 +331,9 @@ const styles = StyleSheet.create({
   },
   btnContainer: {
     flexDirection: "row",
-    alignContent: "center",
     alignItems: "center",
-    width: "100%",
     justifyContent: "space-between",
     marginTop: 20,
-  },
-  swipeDownIndicator: {
-    width: 40,
-    height: 5,
-    backgroundColor: "#ccc",
-    borderRadius: 2.5,
-    alignSelf: "center",
-    marginVertical: 10,
+    width: "100%",
   },
 });
