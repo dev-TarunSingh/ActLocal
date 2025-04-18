@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     minWidth: 30,
     elevation: 10,
-    shadowColor: "#000",
+    boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.2)", // Replaces shadowColor, shadowOpacity, shadowRadius
   },
   otherMessage: {
     alignSelf: "flex-start",
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     minWidth: 20,
     elevation: 10,
-    shadowColor: "#000",
+    boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.2)", // Replaces shadowColor, shadowOpacity, shadowRadius
   },
   messageText: {
     fontSize: 16,

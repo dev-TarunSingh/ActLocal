@@ -2,25 +2,28 @@
   "expo": {
     "name": "ActLocal",
     "slug": "ActLocal",
-    "version": "1.0.0",
+    "version": "1.0.5",
     "orientation": "portrait",
-    "icon": "./assets/images/ActLocal-Logo.jpg",
+    "icon": "./assets/images/ActLocal-Logo.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "jsEngine": "hermes",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "jsEngine": "jsc"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/ActLocal-Logo.jpg",
+        "foregroundImage": "./assets/images/ActLocal-Logo.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.devtarunsingh.ActLocal"
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/ActLocal-Logo.jpg"
+      "favicon": "./assets/images/ActLocal-Logo.png"
     },
     "plugins": [
       "expo-router",
@@ -44,6 +47,12 @@
       "eas": {
         "projectId": "f4b7ab66-1cc4-486c-a23a-a12dd61de844"
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/f4b7ab66-1cc4-486c-a23a-a12dd61de844"
     }
   }
 }

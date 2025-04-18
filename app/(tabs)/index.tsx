@@ -49,7 +49,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme();
 
-  const { logout, userProfile } = useContext(AuthContext);
+  const { userProfile } = useContext<any>(AuthContext);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -68,7 +68,21 @@ export default function HomeScreen() {
             latitude,
           }
         );
-        setPosts(response.data.services);
+
+        const validPosts = Array.isArray(response.data.services)
+          ? response.data.services.filter((post: any) =>
+              post &&
+              typeof post._id === "string" &&
+              typeof post.name === "string" &&
+              typeof post.description === "string" &&
+              typeof post.servicePrice === "number" &&
+              post.postedBy &&
+              typeof post.postedBy.firstName === "string" &&
+              typeof post.postedBy._id === "string"
+            )
+          : [];
+
+        setPosts(validPosts);
       } catch (error) {
         console.error("Error fetching posts:", error);
       }

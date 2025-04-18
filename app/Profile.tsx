@@ -185,10 +185,8 @@ const Profile = () => {
                   styles.serviceCard,
                   {
                     backgroundColor: themecolor,
-                    shadowColor: "#000",
-                    shadowOpacity: 0.2,
-                    shadowRadius: 4,
                     elevation: 3,
+                    boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.2)", // Replaces shadowColor, shadowOpacity, shadowRadius
                   },
                 ]}
               >
@@ -245,6 +243,8 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     flexDirection: "row",
     justifyContent: "space-between",
+    elevation: 3,
+    boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.2)", // Replaces shadowColor, shadowOpacity, shadowRadius
   },
   serviceTitle: { fontSize: 16, fontWeight: "bold" },
   deleteButton: { backgroundColor: "#DC3545", padding: 5, borderRadius: 50 },

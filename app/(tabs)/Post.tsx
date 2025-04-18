@@ -218,6 +218,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.2)", // Replaces shadowColor, shadowOpacity, shadowRadius
   },
   loadingText: {
     fontSize: 18,

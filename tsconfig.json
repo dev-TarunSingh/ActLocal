@@ -1,7 +1,9 @@
 {
-  "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
+    "esModuleInterop": true,
+    "jsx": "react",
+    "forceConsistentCasingInFileNames": true,
     "paths": {
       "@/*": [
         "./*"
@@ -12,6 +14,8 @@
     "**/*.ts",
     "**/*.tsx",
     ".expo/types/**/*.ts",
-    "expo-env.d.ts"
-, "contexts/AuthContext.js"  ]
+    "expo-env.d.ts",
+    "contexts/AuthContext.js"
+  ],
+  "extends": "expo/tsconfig.base"
 }

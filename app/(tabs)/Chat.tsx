@@ -36,61 +36,45 @@ const ChatListScreen = () => {
       .catch(() => setRefreshing(false));
   };
 
-  useEffect(() => {
-    socket.on("message", (message) => {
-      console.log("Received message:", message);
-      // Update chatrooms or messages state here if necessary
-    });
-
-    return () => {
-      socket.off("message");
-    };
-  }, []);
-
   const themecolor = colorScheme === "dark" ? "#333" : "#fff";
   const textColor = colorScheme === "dark" ? "#fff" : "#000";
 
   return (
     <SafeAreaView>
       <NavBar />
-      <ScrollView
-        contentContainerStyle={{ flexGrow: 1 }}
+      <FlatList
+        data={Array.isArray(chatrooms) ? chatrooms : []}
+        keyExtractor={(item) => item._id}
         refreshControl={
-          <RefreshControl refreshing={false} onRefresh={handleRefresh} />
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
-      >
-        <FlatList
-          data={chatrooms}
-          keyExtractor={(item) => item._id}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={{
-                padding: 16,
-                margin: 10,
-                borderRadius: 24,
-                backgroundColor: themecolor,
-                shadowColor: "#000",
-                shadowOpacity: 0.2,
-                shadowRadius: 4,
-                elevation: 3,
-              }}
-              onPress={() =>
-                router.push({
-                  pathname: "/ChatScreen",
-                  params: { chatroomId: item._id },
-                })
-              }
-            >
-              <ThemedText style={{ fontSize: 16, fontWeight: "bold" }}>
-                {item.participants?.[0]?.firstName || "Unknown User"}
-              </ThemedText>
-              <ThemedText style={{ color: "#666" }}>
-                {item.lastMessage?.text || "No messages yet"}
-              </ThemedText>
-            </TouchableOpacity>
-          )}
-        />
-      </ScrollView>
+        contentContainerStyle={{ flexGrow: 1 }}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={{
+              padding: 16,
+              margin: 10,
+              borderRadius: 24,
+              backgroundColor: themecolor,
+              elevation: 3,
+              boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.2)", // Replaces shadowColor, shadowOpacity, shadowRadius
+            }}
+            onPress={() =>
+              router.push({
+                pathname: "/ChatScreen",
+                params: { chatroomId: item._id },
+              })
+            }
+          >
+            <ThemedText style={{ fontSize: 16, fontWeight: "bold" }}>
+              {item.participants?.[0]?.firstName || "Unknown User"}
+            </ThemedText>
+            <ThemedText style={{ color: "#666" }}>
+              {item.lastMessage?.text || "No messages yet"}
+            </ThemedText>
+          </TouchableOpacity>
+        )}
+      />
     </SafeAreaView>
   );
 };
