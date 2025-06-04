@@ -6,7 +6,9 @@ import {
   Pressable,
   RefreshControl,
   ActivityIndicator,
-  Button,
+  KeyboardAvoidingView,
+  Platform,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ThemedText } from "@/components/ThemedText";
@@ -17,30 +19,29 @@ import axios from "axios";
 import AuthContext from "@/contexts/AuthContext";
 import TextInput from "react-native-text-input-interactive";
 import { useLocation } from "@/hooks/useLocation";
+import Spinner from "@/components/Spinner";
 
 function Post() {
-  const { PermissionGranted, longitude, latitude, errorMsg, getUserLocation } =
+  const { PermissionGranted, longitude, latitude, getUserLocation } =
     useLocation();
   const colorScheme = useColorScheme();
-  const { userProfile } = useContext(AuthContext);
+  const { userProfile } = useContext<any>(AuthContext);
   const [loading, setLoading] = useState(false);
-  const postedBy = userProfile._id;
   const [description, setDescription] = useState("");
   const [servicePrice, setServicePrice] = useState("");
-  const [name, setName] = useState(""); // Add name field
-  const [category, setCategory] = useState(""); // Add category field
-  const navigation = useNavigation();
-
+  const [name, setName] = useState("");
+  const [category, setCategory] = useState("");
   const [coordinates, setCoordinates] = useState<[number, number] | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const navigation = useNavigation();
 
   const themetext = colorScheme === "dark" ? "#fff" : "#000";
-  const themecolor = colorScheme === "dark" ? "#333" : "#fff";
+  const themecolor = colorScheme === "dark" ? "#1a1a1a" : "#f9f9f9";
 
   useEffect(() => {
     getUserLocation();
   }, []);
-  
+
   useEffect(() => {
     if (longitude !== null && latitude !== null) {
       setCoordinates([longitude, latitude]);
@@ -69,129 +70,90 @@ function Post() {
       return;
     }
 
-    setLoading(true); // Start loading
+    setLoading(true);
     try {
-      const response = await axios.post(
-        "https://actlocal-server.onrender.com/services",
-        {
-          name,
-          description,
-          category,
-          servicePrice: parseFloat(servicePrice),
-          location: {
-            type: "Point",
-            coordinates,
-          },
-          postedBy: postedBy,
-        }
-      );
+      await axios.post("https://actlocal-server.onrender.com/services", {
+        name,
+        description,
+        category,
+        servicePrice: parseFloat(servicePrice),
+        location: {
+          type: "Point",
+          coordinates,
+        },
+        postedBy: userProfile._id,
+      });
       Alert.alert("Success", "Post created successfully");
       navigation.goBack();
     } catch (error) {
       Alert.alert(
         "Error",
-        `Failed to create Post. Check your details and try again`
+        "Failed to create Post. Check your details and try again"
       );
     } finally {
-      setLoading(false); // Stop loading
+      setLoading(false);
     }
   };
 
-  if (!PermissionGranted || !coordinates) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <ThemedView style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#0000ff" />
-          <ThemedText style={styles.loadingText}>
-            Getting location...
-          </ThemedText>
-          <Button title="Refresh Location" onPress={handleRefresh} />
-          {errorMsg && (
-            <ThemedText style={styles.errorText}>{errorMsg}</ThemedText>
-          )}
-        </ThemedView>
-      </SafeAreaView>
-    );
-  }
-
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <ThemedView style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#EF7A2A" />
-          <ThemedText style={styles.loadingText}>Creating Post...</ThemedText>
-        </ThemedView>
-      </SafeAreaView>
-    );
+  if (!PermissionGranted || !coordinates || loading) {
+    return <Spinner />;
   }
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-        }
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={{ flex: 1 }}
       >
-        <ThemedView style={styles.form}>
-          <ThemedText style={styles.headerText}>Post a Service</ThemedText>
-          <TextInput
-            mainColor="#EF7A2A"
-            style={[styles.input, { backgroundColor: themecolor }]}
-            animatedPlaceholderTextColor={themetext}
-            onChangeText={setName}
-            value={name}
-            placeholder="Service Name"
-          />
-          <TextInput
-            mainColor="#EF7A2A"
-            style={styles.input}
-            animatedPlaceholderTextColor={themetext}
-            onChangeText={setDescription}
-            value={description}
-            placeholder="Description"
-          />
-          <TextInput
-            mainColor="#EF7A2A"
-            style={styles.input}
-            animatedPlaceholderTextColor={themetext}
-            onChangeText={setCategory}
-            value={category}
-            placeholder="Category"
-          />
-          <TextInput
-            mainColor="#EF7A2A"
-            style={styles.input}
-            animatedPlaceholderTextColor={themetext}
-            onChangeText={setServicePrice}
-            value={servicePrice}
-            placeholder="Price"
-          />
-          {loading && (
-            <ActivityIndicator
-              size="large"
-              color="#EF7A2A"
-              style={{ marginVertical: 16 }}
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+          }
+        >
+          <View style={[styles.card, { backgroundColor: themecolor }]}>
+            <ThemedText style={styles.headerText}>Post a Service</ThemedText>
+
+            <TextInput
+              mainColor="#EF7A2A"
+              style={styles.input}
+              animatedPlaceholderTextColor={themetext}
+              onChangeText={setName}
+              value={name}
+              placeholder="Service Name"
             />
-          )}
-          <Pressable
-            style={({ pressed }) => [
-              { backgroundColor: pressed ? "#EF7A2A" : "#EF7A2A" },
-              { borderRadius: pressed ? 0 : 50 },
-              { opacity: pressed ? 0.5 : 1.0 },
-              { height: 50, justifyContent: "center", alignItems: "center" },
-            ]}
-            onPress={() => handleSubmit()}
-          >
-            <ThemedView>
-              <ThemedText
-                style={{ backgroundColor: "#EF7A2A", color: themetext }}
-              >
-                Post
-              </ThemedText>
-            </ThemedView>
-          </Pressable>
-        </ThemedView>
-      </ScrollView>
+            <TextInput
+              mainColor="#EF7A2A"
+              style={styles.input}
+              animatedPlaceholderTextColor={themetext}
+              onChangeText={setDescription}
+              value={description}
+              placeholder="Description"
+            />
+            <TextInput
+              mainColor="#EF7A2A"
+              style={styles.input}
+              animatedPlaceholderTextColor={themetext}
+              onChangeText={setCategory}
+              value={category}
+              placeholder="Category"
+            />
+            <TextInput
+              mainColor="#EF7A2A"
+              style={styles.input}
+              animatedPlaceholderTextColor={themetext}
+              onChangeText={setServicePrice}
+              value={servicePrice}
+              placeholder="Price"
+              keyboardType="numeric"
+            />
+
+            <Pressable style={styles.button} onPress={handleSubmit}>
+              <ThemedText style={styles.buttonText}>Post</ThemedText>
+            </Pressable>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -199,34 +161,44 @@ function Post() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignContent: "center",
   },
-  form: {
+  scrollContent: {
     padding: 16,
-    justifyContent: "center",
+  },
+  card: {
+    padding: 20,
+    borderRadius: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 5,
   },
   headerText: {
-    fontSize: 24,
+    fontSize: 28,
+    fontWeight: "600",
     textAlign: "center",
+    marginBottom: 24,
+    marginTop: 24,
+    color: "#EF7A2A",
   },
   input: {
-    borderRadius: 50,
+    padding: 12,
     marginVertical: 8,
+    borderRadius: 50,
+    fontSize: 16,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
+  button: {
+    marginTop: 20,
+    backgroundColor: "#EF7A2A",
+    borderRadius: 50,
+    paddingVertical: 14,
     alignItems: "center",
-    boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.2)", // Replaces shadowColor, shadowOpacity, shadowRadius
   },
-  loadingText: {
+  buttonText: {
+    color: "#fff",
     fontSize: 18,
-    marginVertical: 10,
-  },
-  errorText: {
-    color: "red",
-    marginTop: 10,
+    fontWeight: "bold",
   },
 });
 

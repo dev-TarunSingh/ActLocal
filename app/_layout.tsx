@@ -11,12 +11,12 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
-import { ChatProvider } from "@/contexts/ChatContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ChatProvider } from "@/contexts/ChatContext";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import * as MediaLibrary from "expo-media-library";
 import * as Location from "expo-location";
-import { Alert } from "react-native";
+import * as Updates from 'expo-updates';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -30,8 +30,10 @@ export default function RootLayout() {
 
   const requestAllPermissions = async () => {
     try {
-      const { status: mediaStatus } = await MediaLibrary.requestPermissionsAsync();
-      const { status: locationStatus } = await Location.requestForegroundPermissionsAsync();
+      const { status: mediaStatus } =
+        await MediaLibrary.requestPermissionsAsync();
+      const { status: locationStatus } =
+        await Location.requestForegroundPermissionsAsync();
 
       if (mediaStatus === "granted" || locationStatus === "granted") {
         setPermissionsGranted(true);
@@ -45,13 +47,27 @@ export default function RootLayout() {
     }
   };
 
+
   useEffect(() => {
+    
+    const checkForUpdates = async () => {
+      try {
+        const update = await Updates.checkForUpdateAsync();
+        if (update.isAvailable) {
+          await Updates.fetchUpdateAsync();
+          await Updates.reloadAsync(); 
+        }
+      } catch (e) {
+        console.log("Failed to fetch update:", e);
+      }
+    };
     requestAllPermissions();
+    checkForUpdates();
   }, []);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      SplashScreen.hideAsync(); // Always hide eventually
+      SplashScreen.hideAsync(); 
     }, 5000);
 
     if (loaded && permissionsGranted) {
@@ -63,31 +79,33 @@ export default function RootLayout() {
 
   if (!loaded || !permissionsGranted) {
     return (
-      <ThemedView style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <ThemedView
+        style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+      >
         <ThemedText>Loading app...</ThemedText>
       </ThemedView>
     );
   }
 
   return (
-    <React.StrictMode><ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <AuthProvider>
-        <ChatProvider>
-          <Stack>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            {/* <Stack.Screen name="Post" options={{ headerShown: false }} />
+    <React.StrictMode>
+      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+        <AuthProvider>
+          <ChatProvider>
+            <Stack>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              {/* <Stack.Screen name="Post" options={{ headerShown: false }} />
             <Stack.Screen name="Chat" options={{ headerShown: false }} /> */}
-            <Stack.Screen name="ChatScreen" options={{ headerShown: true }} />
-            <Stack.Screen name="Login" options={{ headerShown: false }} />
-            <Stack.Screen name="Signup" options={{ headerShown: false }} />
-            <Stack.Screen name="Profile" options={{ headerShown: false }} />
-            <Stack.Screen name="+not-found" />
-          </Stack>
-          <StatusBar style="auto" />
-        </ChatProvider>
-      </AuthProvider>
-    </ThemeProvider>
+              <Stack.Screen name="ChatScreen" options={{ headerShown: true }} />
+              <Stack.Screen name="Login" options={{ headerShown: false }} />
+              <Stack.Screen name="Signup" options={{ headerShown: false }} />
+              <Stack.Screen name="Profile" options={{ headerShown: false }} />
+              <Stack.Screen name="+not-found" />
+            </Stack>
+            <StatusBar style="auto" />
+          </ChatProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </React.StrictMode>
-    
   );
 }

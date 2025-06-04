@@ -19,6 +19,7 @@ import { useLocation } from "@/hooks/useLocation";
 import axios from "axios";
 import { useChat } from "@/contexts/ChatContext";
 import AuthContext from "../../contexts/AuthContext";
+import Spinner from "@/components/Spinner";
 
 export default function HomeScreen() {
   const { PermissionGranted, longitude, latitude, getUserLocation, errorMsg } = useLocation();
@@ -135,19 +136,14 @@ export default function HomeScreen() {
       }
     } catch (error: any) {
       console.error("Error creating or fetching chatroom:", error.response?.data || error.message);
-      alert("Failed to fetch or create chatroom. Please try again.");
+      // alert("Failed to fetch or create chatroom. Please try again.");
     }
   };
 
   // RENDERING
-  if (loading) {
+  if (loading)  {
     return (
-      <SafeAreaView style={styles.container}>
-        <ThemedView style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#EF7A2A" />
-          <ThemedText style={styles.loadingText}>Loading...</ThemedText>
-        </ThemedView>
-      </SafeAreaView>
+      <Spinner />
     );
   }
 

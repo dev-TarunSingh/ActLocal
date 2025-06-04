@@ -25,9 +25,7 @@ const ChatListScreen = () => {
     }, [])
   );
 
-  useEffect(() => {
-    console.log("Updated Chatrooms:", chatrooms);
-  }, [chatrooms]);
+  
 
   const handleRefresh = () => {
     setRefreshing(true);

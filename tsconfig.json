@@ -15,7 +15,8 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts",
-    "contexts/AuthContext.js"
+    "contexts/AuthContext.js",
+    "contexts/ChatContext.js"
   ],
   "extends": "expo/tsconfig.base"
 }

@@ -25,6 +25,12 @@ const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [updatedProfile, setUpdatedProfile] = useState({ ...userProfile });
   const colorScheme = useColorScheme();
+  const avatarOptions = [
+    "https://i.pravatar.cc/150?img=1",
+    "https://i.pravatar.cc/150?img=2",
+    "https://i.pravatar.cc/150?img=3",
+    "https://i.pravatar.cc/150?img=4",
+  ];
 
   const themecolor = colorScheme === "dark" ? "#333" : "#fff";
   const themetext = colorScheme === "dark" ? "#fff" : "#000";
@@ -78,12 +84,9 @@ const Profile = () => {
         onPress: async () => {
           console.log("Deleting service with ID:", serviceId);
           try {
-            await axios.delete(
-              `http://192.168.1.8:3000/services`,
-              {
-                data: { serviceId },
-              }
-            );
+            await axios.delete(`http://192.168.1.8:3000/services`, {
+              data: { serviceId },
+            });
             setServices((prev) =>
               prev.filter((service) => service._id !== serviceId)
             );
@@ -113,6 +116,26 @@ const Profile = () => {
 
       {isEditing ? (
         <ThemedView style={styles.formContainer}>
+          <ThemedText style={{ marginBottom: 10, fontWeight: "bold" }}>
+            Select Profile Image
+          </ThemedText>
+          <View style={styles.avatarContainer}>
+            {avatarOptions.map((uri) => (
+              <TouchableOpacity
+                key={uri}
+                onPress={() => handleChange("profilePicture", uri)}
+              >
+                <Image
+                  source={{ uri }}
+                  style={[
+                    styles.avatarImage,
+                    updatedProfile.profilePicture === uri &&
+                      styles.selectedAvatar,
+                  ]}
+                />
+              </TouchableOpacity>
+            ))}
+          </View>
           <TextInput
             style={[
               styles.input,
@@ -256,6 +279,22 @@ const styles = StyleSheet.create({
     margin: 20,
   },
   buttonText: { color: "#fff", fontWeight: "bold" },
+  avatarContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 10,
+  },
+  avatarImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 2,
+    borderColor: "transparent",
+    marginRight: 10,
+  },
+  selectedAvatar: {
+    borderColor: "#007BFF",
+  },
 });
 
 export default Profile;

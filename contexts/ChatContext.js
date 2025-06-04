@@ -41,7 +41,10 @@ export const ChatProvider = ({ children }) => {
           [chatroomId]: [...(prev[chatroomId] || []), ...missed],
         }));
       } else {
-        console.error("Invalid missed messages received:", { chatroomId, missed });
+        console.error("Invalid missed messages received:", {
+          chatroomId,
+          missed,
+        });
       }
     });
 
@@ -96,7 +99,14 @@ export const ChatProvider = ({ children }) => {
 
   return (
     <ChatContext.Provider
-      value={{ chatrooms, messages, fetchChatrooms, getMessages, sendMessage, setMessages }}
+      value={{
+        chatrooms,
+        messages,
+        fetchChatrooms,
+        getMessages,
+        sendMessage,
+        setMessages,
+      }}
     >
       {children}
     </ChatContext.Provider>

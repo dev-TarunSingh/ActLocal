@@ -10,6 +10,7 @@
     "newArchEnabled": true,
     "jsEngine": "hermes",
     "sdkVersion": "52.0.0",
+    
     "ios": {
       "supportsTablet": true,
       "jsEngine": "jsc"
@@ -54,6 +55,8 @@
       "policy": "appVersion"
     },
     "updates": {
+      "enabled": true,
+      "fallbackToCacheTimeout": 0,
       "url": "https://u.expo.dev/f4b7ab66-1cc4-486c-a23a-a12dd61de844"
     }
   }

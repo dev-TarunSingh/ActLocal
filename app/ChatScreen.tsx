@@ -37,6 +37,7 @@ const ChatScreen = ({ chatroomId: propChatroomId }: ChatScreenProps) => {
   const [text, setText] = useState("");
   const [sendingMessageIds, setSendingMessageIds] = useState<string[]>([]);
   const flatListRef = useRef<FlatList>(null);
+  const [inputHeight, setInputHeight] = useState(80);
 
   useFocusEffect(
     useCallback(() => {
@@ -84,12 +85,13 @@ const ChatScreen = ({ chatroomId: propChatroomId }: ChatScreenProps) => {
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
-          keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 80}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 80}
         >
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View style={{ flex: 1 }}>
               <FlatList
                 ref={flatListRef}
+                keyboardShouldPersistTaps="handled"
                 data={messages[chatroomId] || []}
                 keyExtractor={(item) => item._id}
                 renderItem={({ item }) => (
@@ -114,16 +116,25 @@ const ChatScreen = ({ chatroomId: propChatroomId }: ChatScreenProps) => {
                   </ThemedView>
                 )}
                 onContentSizeChange={() =>
-                  flatListRef.current?.scrollToEnd({ animated: true })
+                  setTimeout(() => {
+                    flatListRef.current?.scrollToEnd({ animated: true });
+                  }, 100)
                 }
                 onLayout={() =>
-                  flatListRef.current?.scrollToEnd({ animated: true })
+                  setTimeout(() => {
+                    flatListRef.current?.scrollToEnd({ animated: true });
+                  }, 100)
                 }
-                contentContainerStyle={{ paddingBottom: 110 }}
+                contentContainerStyle={{ paddingBottom: inputHeight + 20 }}
               />
 
-              {/* Input Section - Always Visible */}
-              <View style={styles.inputContainer}>
+              <View
+                style={styles.inputContainer}
+                onLayout={(event) => {
+                  const { height } = event.nativeEvent.layout;
+                  setInputHeight(height);
+                }}
+              >
                 <TextInput
                   value={text}
                   onChangeText={setText}
@@ -191,8 +202,6 @@ const styles = StyleSheet.create({
     padding: 10,
     borderTopWidth: 1,
     borderColor: "#ccc",
-    position: "absolute",
-    bottom: 0,
     width: "100%",
   },
   input: {
