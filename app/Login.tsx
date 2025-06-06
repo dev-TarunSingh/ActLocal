@@ -26,8 +26,9 @@ const Register: React.FC = () => {
   const { login, setUserProfile } = useContext(AuthContext);
   const colorScheme = useColorScheme();
 
+  const TextColor = colorScheme === "light" ? "#000000" : "#FFFFFF";
+
   const router = useRouter();
-  
 
   const handleSubmit = () => {
     setLoading(true);
@@ -41,7 +42,7 @@ const Register: React.FC = () => {
         setUserProfile(res.data.user);
         console.log(res.data.user);
         if (token) {
-          login(token, res.data.user); 
+          login(token, res.data.user);
         } else {
           console.error("Token is null or undefined");
           alert("Failed to login: Token is missing");
@@ -103,6 +104,15 @@ const Register: React.FC = () => {
               />
             </View>
 
+            <Pressable
+              style={{ marginTop: 16, alignSelf: "center" }}
+              onPress={() => router.push("/ForgotCredentials")}
+            >
+              <Text style={{ color: TextColor, fontSize: 16 }}>
+                Forgot Username/Password?
+              </Text>
+            </Pressable>
+
             <TouchableOpacity
               style={[
                 styles.btn,
@@ -114,9 +124,10 @@ const Register: React.FC = () => {
               disabled={loading}
             >
               {loading ? (
-                <ActivityIndicator size="small" color={colorScheme === "light"
-                  ? "#242c40"
-                  : "#FFFF"} />
+                <ActivityIndicator
+                  size="small"
+                  color={colorScheme === "light" ? "#242c40" : "#FFFF"}
+                />
               ) : (
                 <Text
                   style={[

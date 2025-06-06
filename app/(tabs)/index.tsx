@@ -22,7 +22,8 @@ import AuthContext from "../../contexts/AuthContext";
 import Spinner from "@/components/Spinner";
 
 export default function HomeScreen() {
-  const { PermissionGranted, longitude, latitude, getUserLocation, errorMsg } = useLocation();
+  const { PermissionGranted, longitude, latitude, getUserLocation, errorMsg } =
+    useLocation();
   const { chatrooms, fetchChatrooms, startChat } = useChat();
   const router = useRouter();
   const colorScheme = useColorScheme();
@@ -38,7 +39,9 @@ export default function HomeScreen() {
 
   const checkInternetConnection = async () => {
     try {
-      const response = await fetch("https://www.google.com", { method: "HEAD" });
+      const response = await fetch("https://www.google.com", {
+        method: "HEAD",
+      });
       if (!response.ok) {
         setLocationError("No internet connection available.");
       }
@@ -51,13 +54,18 @@ export default function HomeScreen() {
     try {
       await checkInternetConnection();
       await getUserLocation();
+      await fetchPosts();
       if (longitude === null || latitude === null) {
-        setLocationError("Your location is not available. Please enable location services.");
+        setLocationError(
+          "Your location is not available. Please enable location services."
+        );
       } else {
         setLocationError(null);
       }
     } catch (error: any) {
-      setLocationError(error.message || "An error occurred while fetching location.");
+      setLocationError(
+        error.message || "An error occurred while fetching location."
+      );
     } finally {
       setLoading(false);
     }
@@ -66,26 +74,17 @@ export default function HomeScreen() {
   const fetchPosts = async () => {
     if (longitude !== null && latitude !== null) {
       try {
-        const response = await axios.post("https://actlocal-server.onrender.com/services/nearby", {
-          longitude,
-          latitude,
-        });
+        const response = await axios.post(
+          "https://actlocal-server.onrender.com/services/nearby",
+          {
+            longitude,
+            latitude,
+          }
+        );
 
-        const validPosts = Array.isArray(response.data.services)
-          ? response.data.services.filter(
-              (post: any) =>
-                post &&
-                typeof post._id === "string" &&
-                typeof post.name === "string" &&
-                typeof post.description === "string" &&
-                typeof post.servicePrice === "number" &&
-                post.postedBy &&
-                typeof post.postedBy.firstName === "string" &&
-                typeof post.postedBy._id === "string"
-            )
-          : [];
+        console.log("Response from server:", response.data.services);
 
-        setPosts(validPosts);
+        setPosts(response.data.services || []);
       } catch (error) {
         console.error("Error fetching posts:", error);
       }
@@ -98,10 +97,6 @@ export default function HomeScreen() {
     await fetchPosts();
     setRefreshing(false);
   };
-
-  useEffect(() => {
-    fetchLocationAndHandleErrors();
-  }, []);
 
   useEffect(() => {
     const fetchLocationAndPosts = async () => {
@@ -120,10 +115,13 @@ export default function HomeScreen() {
 
   const onChatPress = async () => {
     try {
-      const res = await axios.post("https://actlocal-server.onrender.com/api/chat/chatrooms", {
-        user1: userProfile._id,
-        user2: selectedPost.postedBy._id,
-      });
+      const res = await axios.post(
+        "https://actlocal-server.onrender.com/api/chat/chatrooms",
+        {
+          user1: userProfile._id,
+          user2: selectedPost.postedBy._id,
+        }
+      );
 
       if (res.data?.chatroomId) {
         setCurrPostChatRoom(res.data.chatroomId);
@@ -135,16 +133,17 @@ export default function HomeScreen() {
         alert("Failed to fetch or create chatroom. Please try again.");
       }
     } catch (error: any) {
-      console.error("Error creating or fetching chatroom:", error.response?.data || error.message);
+      console.error(
+        "Error creating or fetching chatroom:",
+        error.response?.data || error.message
+      );
       // alert("Failed to fetch or create chatroom. Please try again.");
     }
   };
 
   // RENDERING
-  if (loading)  {
-    return (
-      <Spinner />
-    );
+  if (loading) {
+    return <Spinner />;
   }
 
   if (locationError) {
@@ -174,17 +173,27 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" translucent={false} />
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor="#ffffff"
+        translucent={false}
+      />
       <NavBar />
 
       {showSummary && selectedPost && (
         <ThemedView style={styles.popupOverlay}>
           <ThemedView style={styles.popupContainer}>
-            <ThemedText style={styles.popupTitle}>{selectedPost.name}</ThemedText>
-            <ThemedText style={styles.popupDescription}>{selectedPost.description}</ThemedText>
-            <ThemedText style={styles.popupPrice}>₹ {selectedPost.servicePrice}</ThemedText>
+            <ThemedText style={styles.popupTitle}>
+              {selectedPost.name}
+            </ThemedText>
+            <ThemedText style={styles.popupDescription}>
+              {selectedPost.description}
+            </ThemedText>
+            <ThemedText style={styles.popupPrice}>
+              ₹ {selectedPost.servicePrice}
+            </ThemedText>
             <ThemedText style={styles.popupPostedBy}>
-              Posted by: {selectedPost.postedBy.firstName}
+              Posted by: {selectedPost.postedBy?.firstName || "Unknown"}
             </ThemedText>
             <View style={styles.btnContainer}>
               <TouchableOpacity onPress={() => setShowSummary(false)}>
@@ -209,7 +218,9 @@ export default function HomeScreen() {
 
       <ScrollView
         contentContainerStyle={{ flexGrow: 1, zIndex: 1 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
       >
         {PermissionGranted === false ? (
           <ThemedText style={{ zIndex: 2 }}>{errorMsg}</ThemedText>
@@ -224,9 +235,13 @@ export default function HomeScreen() {
                 }}
               >
                 <ThemedText style={styles.postTitle}>{post.name}</ThemedText>
-                <ThemedText style={styles.postDescription}>{post.description}</ThemedText>
+                <ThemedText style={styles.postDescription}>
+                  {post.description}
+                </ThemedText>
                 <ThemedText>₹ {post.servicePrice}</ThemedText>
-                <ThemedText>{post.postedBy.firstName}</ThemedText>
+                <ThemedText>
+                  {post.postedBy ? post.postedBy.firstName : "Unknown"}
+                </ThemedText>
               </Pressable>
             </ThemedView>
           ))
@@ -239,7 +254,10 @@ export default function HomeScreen() {
               zIndex: 2,
             }}
           >
-            <ThemedText>A Bug caught us! Don’t worry, rescue team is here!</ThemedText>
+            <ThemedText>Finding posts near you... Please wait.</ThemedText>
+            <TouchableOpacity onPress={fetchLocationAndHandleErrors}>
+              <ThemedText style={styles.errorText}>Retry</ThemedText>
+            </TouchableOpacity>
           </ThemedView>
         )}
       </ScrollView>

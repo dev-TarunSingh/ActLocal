@@ -99,6 +99,7 @@ export default function RootLayout() {
               <Stack.Screen name="ChatScreen" options={{ headerShown: true }} />
               <Stack.Screen name="Login" options={{ headerShown: false }} />
               <Stack.Screen name="Signup" options={{ headerShown: false }} />
+              <Stack.Screen name="ForgotCredentials" options={{ headerShown: false }} />
               <Stack.Screen name="Profile" options={{ headerShown: false }} />
               <Stack.Screen name="+not-found" />
             </Stack>
