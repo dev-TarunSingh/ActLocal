@@ -16,7 +16,7 @@ import { ThemedView } from "@/components/ThemedView";
 import AuthContext from "@/contexts/AuthContext";
 import axios from "axios";
 import { useColorScheme } from "react-native";
-import { setStatusBarBackgroundColor } from "expo-status-bar";
+import { StatusBar } from "expo-status-bar";
 
 const Profile = () => {
   const { userProfile, logout } = useContext(AuthContext);
@@ -84,7 +84,7 @@ const Profile = () => {
         onPress: async () => {
           console.log("Deleting service with ID:", serviceId);
           try {
-            await axios.delete(`http://192.168.1.8:3000/services`, {
+            await axios.delete(`http://actlocal-server.onrender.com/services`, {
               data: { serviceId },
             });
             setServices((prev) =>
@@ -99,7 +99,12 @@ const Profile = () => {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: themecolor }}>
+      <StatusBar
+        Style="dark-content"
+        backgroundColor="#ffffff"
+        translucent={false}
+      />
       <ThemedView style={styles.profileContainer}>
         <Image
           source={{
@@ -198,7 +203,7 @@ const Profile = () => {
         <ThemedText style={styles.sectionTitle}>Your Services</ThemedText>
         {loading ? (
           <ActivityIndicator size="large" color="#EF7A2A" />
-        ) : (
+        ) : services.length > 0 ? (
           <FlatList
             data={services}
             keyExtractor={(item) => item._id}
@@ -209,7 +214,7 @@ const Profile = () => {
                   {
                     backgroundColor: themecolor,
                     elevation: 3,
-                    boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.2)", // Replaces shadowColor, shadowOpacity, shadowRadius
+                    boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.2)",
                   },
                 ]}
               >
@@ -223,6 +228,8 @@ const Profile = () => {
               </ThemedView>
             )}
           />
+        ) : (
+          <ThemedText>No services found. Add Some Services.</ThemedText>
         )}
       </ThemedView>
     </SafeAreaView>

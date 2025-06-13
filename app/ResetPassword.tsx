@@ -1,22 +1,45 @@
 // app/ResetPassword.tsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from "react-native";
 import axios from "axios";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { useLocalSearchParams } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
 
 const ResetPassword = () => {
-  const { token } = useLocalSearchParams(); // token comes from URL
   const [newPassword, setNewPassword] = useState("");
+  const [token, setToken] = useState<any>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    const getToken = async () => {
+      const storedToken = await AsyncStorage.getItem("ResetToken");
+      console.log(storedToken)
+      setToken(storedToken);
+    };
+    getToken();
+  }, []);
 
   const handleResetPassword = async () => {
+    if (!token) {
+      Alert.alert("Error", "No reset token found. Please Request again.");
+      return;
+    }
     try {
       await axios.post("https://actlocal-server.onrender.com/api/user/reset-password", {
         token,
         newPassword,
       });
-      Alert.alert("Success", "Password has been reset. You can now login.");
+      Alert.alert("Success", "Password has been reset. You can now login.",
+        [
+          {
+            text: "OK",
+            onPress: () => router.push("/Login"), // Redirect on OK
+          },
+        ]
+      );
     } catch (err: any) {
       Alert.alert("Error", err.response?.data?.message || "Reset failed.");
     }
@@ -42,8 +65,8 @@ const ResetPassword = () => {
 export default ResetPassword;
 
 const styles = StyleSheet.create({
-  container: { padding: 20, marginTop: 100 },
-  title: { fontSize: 28, fontWeight: "bold", marginBottom: 20 },
+  container: { padding: 20, paddingTop: 20,  flex: 1 },
+  title: { fontSize: 28, fontWeight: "bold", padding:10, marginBottom: 20 },
   input: { backgroundColor: "#eee", borderRadius: 10, padding: 12, marginBottom: 20 },
   button: { backgroundColor: "#ffaa00", padding: 15, borderRadius: 10 },
   buttonText: { textAlign: "center", fontWeight: "bold", color: "#fff" },

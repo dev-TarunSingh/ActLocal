@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  Alert,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { useRouter } from "expo-router";
@@ -35,6 +36,7 @@ const Register: React.FC = () => {
       setIsAvailable(null);
       return;
     }
+
     setChecking(true);
     try {
       const response = await fetch(
@@ -62,6 +64,14 @@ const Register: React.FC = () => {
   }, [userName]);
 
   const handleSubmit = () => {
+    if (!email.includes("@")) {
+          Alert.alert("Invalid Email", "Please enter a valid email address.");
+          return;
+        }
+    if (!isAvailable) {
+      Alert.alert("Username Unavailable", "Please choose a different username.");
+      return;
+    }
     setLoading(true);
     axios
       .post(

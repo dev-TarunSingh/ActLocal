@@ -166,6 +166,21 @@ export default function HomeScreen() {
           <ThemedText style={styles.errorText}>
             User not logged in. Please log in to continue.
           </ThemedText>
+          <Pressable
+            style={{
+              backgroundColor: "#EF7A2A",
+              padding: 12,
+              borderRadius: 25,
+              marginTop: 20,
+              alignItems: "center",
+              width: 160,
+            }}
+            onPress={() => router.push("/Login")}
+          >
+            <ThemedText style={{ color: "#fff", fontWeight: "bold" }}>
+              Login
+            </ThemedText>
+          </Pressable>
         </ThemedView>
       </SafeAreaView>
     );

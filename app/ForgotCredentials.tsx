@@ -9,10 +9,18 @@ import {
   Alert,
 } from "react-native";
 import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
 
 const ForgotCredentials = () => {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
+  const saveToken = async (token: string) => {
+    // Save the token to local storage or context
+    await AsyncStorage.setItem("ResetToken", token);
+  }
 
   const handleSendRequest = async () => {
     if (!email.includes("@")) {
@@ -23,19 +31,35 @@ const ForgotCredentials = () => {
     setLoading(true);
     try {
       const res = await axios.post(
-        "https://actlocal-server.onrender.com/forgot-credentials",
+        "https://actlocal-server.onrender.com/api/user/forgot-credentials",
         {
-          email,
+          email : email,
         }
       );
 
-      Alert.alert("Success", res.data.message);
-    } catch (err) {
-      console.error(err.response?.data || err.message);
+      await saveToken(res.data.token);
       Alert.alert(
-        "Error",
-        err.response?.data?.message || "Something went wrong."
+        "Success",
+        res.data.message,
+        [
+          {
+            text: "OK",
+            onPress: () => router.push("/ResetPassword"), // Redirect on OK
+          },
+        ]
       );
+
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        console.error(err.response?.data || err.message);
+        Alert.alert(
+          "Error",
+          err.response?.data?.message || "Something went wrong."
+        );
+      } else {
+        console.error(err);
+        Alert.alert("Error", "Something went wrong.");
+      }
     } finally {
       setLoading(false);
     }
