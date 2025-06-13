@@ -125,8 +125,7 @@ const Register: React.FC = () => {
             >
               {loading ? (
                 <ActivityIndicator
-                  size="small"
-                  color={colorScheme === "light" ? "#242c40" : "#FFFF"}
+                  color={colorScheme === "light" ? "#000000" : "#FFFF"}
                 />
               ) : (
                 <Text

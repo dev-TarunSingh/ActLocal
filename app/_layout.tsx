@@ -16,7 +16,8 @@ import { ChatProvider } from "@/contexts/ChatContext";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import * as MediaLibrary from "expo-media-library";
 import * as Location from "expo-location";
-import * as Updates from 'expo-updates';
+import * as Updates from "expo-updates";
+import { Pressable } from "react-native";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -30,44 +31,45 @@ export default function RootLayout() {
 
   const requestAllPermissions = async () => {
     try {
-      const { status: mediaStatus } =
+
+      const { status: mediaLibraryStatus } =
         await MediaLibrary.requestPermissionsAsync();
       const { status: locationStatus } =
         await Location.requestForegroundPermissionsAsync();
 
-      if (mediaStatus === "granted" || locationStatus === "granted") {
+      if ( locationStatus === "granted" && mediaLibraryStatus === "granted") {
         setPermissionsGranted(true);
       } else {
         console.warn("Some permissions not granted");
-        setPermissionsGranted(true); // Allow app to render even if permissions are not granted
+        setPermissionsGranted(true);
       }
     } catch (err) {
       console.error("Permission error:", err);
-      setPermissionsGranted(true); // Prevent lock
+      setPermissionsGranted(true);
     }
   };
 
-
   useEffect(() => {
-    
-    const checkForUpdates = async () => {
+    const updateApp = async () => {
       try {
         const update = await Updates.checkForUpdateAsync();
+        console.log("Is update available?", update.isAvailable);
         if (update.isAvailable) {
           await Updates.fetchUpdateAsync();
-          await Updates.reloadAsync(); 
+          await Updates.reloadAsync(); // restarts app
         }
+      
       } catch (e) {
-        console.log("Failed to fetch update:", e);
+        console.log("Update check failed:", e);
       }
     };
     requestAllPermissions();
-    checkForUpdates();
+    updateApp();
   }, []);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      SplashScreen.hideAsync(); 
+      SplashScreen.hideAsync();
     }, 5000);
 
     if (loaded && permissionsGranted) {
@@ -77,12 +79,38 @@ export default function RootLayout() {
     return () => clearTimeout(timeout);
   }, [loaded, permissionsGranted]);
 
-  if (!loaded || !permissionsGranted) {
+  if (!loaded) {
     return (
       <ThemedView
         style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
       >
-        <ThemedText>Loading app...</ThemedText>
+        <ThemedText>Loading app... Please wait</ThemedText>
+      </ThemedView>
+    );
+  }
+
+  if (!permissionsGranted) {
+    return (
+      <ThemedView
+        style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+      >
+        <ThemedText>
+          Permissions Missing... Please Allow all reuired permissions and try
+          again
+        </ThemedText>
+        <Pressable onPress={() => requestAllPermissions()}>
+          <ThemedView
+            style={{
+              backgroundColor: "#EF7A2A",
+              borderRadius: 50,
+              padding: 10,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <ThemedText style={{ color: "white" }}>Retry</ThemedText>
+          </ThemedView>
+        </Pressable>
       </ThemedView>
     );
   }
@@ -99,7 +127,10 @@ export default function RootLayout() {
               <Stack.Screen name="ChatScreen" options={{ headerShown: true }} />
               <Stack.Screen name="Login" options={{ headerShown: false }} />
               <Stack.Screen name="Signup" options={{ headerShown: false }} />
-              <Stack.Screen name="ForgotCredentials" options={{ headerShown: false }} />
+              <Stack.Screen
+                name="ForgotCredentials"
+                options={{ headerShown: false }}
+              />
               <Stack.Screen name="Profile" options={{ headerShown: false }} />
               <Stack.Screen name="+not-found" />
             </Stack>

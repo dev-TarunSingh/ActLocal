@@ -10,7 +10,7 @@
     "newArchEnabled": true,
     "jsEngine": "hermes",
     "sdkVersion": "52.0.0",
-    
+
     "ios": {
       "supportsTablet": true,
       "jsEngine": "jsc"
@@ -21,7 +21,10 @@
         "foregroundImage": "./assets/images/ActLocal-Logo.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.devtarunsingh.ActLocal"
+      "package": "com.devtarunsingh.ActLocal",
+      "runtimeVersion": {
+        "policy":"appVersion"
+      }
     },
     "web": {
       "bundler": "metro",

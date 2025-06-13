@@ -269,7 +269,7 @@ export default function HomeScreen() {
               zIndex: 2,
             }}
           >
-            <ThemedText>Finding posts near you... Please wait.</ThemedText>
+            <ThemedText>Finding posts near you... Please wait...</ThemedText>
             <TouchableOpacity onPress={fetchLocationAndHandleErrors}>
               <ThemedText style={styles.errorText}>Retry</ThemedText>
             </TouchableOpacity>

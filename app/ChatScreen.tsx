@@ -79,6 +79,8 @@ const ChatScreen = ({ chatroomId: propChatroomId }: ChatScreenProps) => {
     getMessages(chatroomId);
   }
 
+  
+
   return (
     <ThemedView style={{ flex: 1 }}>
       <SafeAreaView style={{ flex: 1 }}>
