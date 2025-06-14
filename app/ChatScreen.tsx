@@ -32,7 +32,6 @@ const ChatScreen = ({ chatroomId: propChatroomId }: ChatScreenProps) => {
   const chatroomId = Array.isArray(chatroomIdParam)
     ? chatroomIdParam[0]
     : chatroomIdParam;
-  const [refreshing, setRefreshing] = useState(false);
   const { getMessages, sendMessage, messages, setMessages } = useChat();
   const [text, setText] = useState("");
   const [sendingMessageIds, setSendingMessageIds] = useState<string[]>([]);
@@ -75,9 +74,7 @@ const ChatScreen = ({ chatroomId: propChatroomId }: ChatScreenProps) => {
     }
   };
 
-  function handleRefresh() {
-    getMessages(chatroomId);
-  }
+  
 
   
 

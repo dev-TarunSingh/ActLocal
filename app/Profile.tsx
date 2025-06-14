@@ -7,8 +7,8 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  FlatList,
   Alert,
+  Dimensions,
 } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -18,11 +18,24 @@ import AuthContext from "@/contexts/AuthContext";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useColorScheme } from "react-native";
+import { SvgUri } from "react-native-svg";
+
+const screenWidth = Dimensions.get("window").width;
+
+const avatarOptions = [
+  "https://actlocal-server.onrender.com/avatars/1.svg",
+  "https://actlocal-server.onrender.com/avatars/2.svg",
+  "https://actlocal-server.onrender.com/avatars/3.svg",
+  "https://actlocal-server.onrender.com/avatars/4.svg",
+  "https://actlocal-server.onrender.com/avatars/5.svg",
+  "https://actlocal-server.onrender.com/avatars/6.svg",
+  "https://actlocal-server.onrender.com/avatars/7.svg",
+  "https://actlocal-server.onrender.com/avatars/8.svg",
+];
 
 type Service = {
   _id: string;
   name: string;
-  // add other properties if needed
 };
 
 const Profile = () => {
@@ -33,15 +46,9 @@ const Profile = () => {
   const [updatedProfile, setUpdatedProfile] = useState(userProfile);
   const colorScheme = useColorScheme();
 
-  const themecolor = colorScheme === "dark" ? "#121212" : "#FFFFFF";
+  const themecolor = colorScheme === "dark" ? "#000000" : "#FFFFFF";
   const themetext = colorScheme === "dark" ? "#FFFFFF" : "#000000";
-
-  const avatarOptions = [
-    "https://i.pravatar.cc/150?img=1",
-    "https://i.pravatar.cc/150?img=2",
-    "https://i.pravatar.cc/150?img=3",
-    "https://i.pravatar.cc/150?img=4",
-  ];
+  const bgcolor = colorScheme === "dark" ? "#000000" : "#ffffff";
 
   useEffect(() => {
     setUpdatedProfile(userProfile);
@@ -73,11 +80,13 @@ const Profile = () => {
   const handleSaveProfile = async () => {
     try {
       const response = await axios.put(
-        `http://192.168.253.73:3000/api/user/${userProfile._id}`,
+        `https://actlocal-server.onrender.com/api/user/${userProfile._id}`,
         updatedProfile
       );
+      console.log("Profile updated:", response.data.user);
       await AsyncStorage.setItem("user", JSON.stringify(response.data.user));
       setUserProfile(response.data.user);
+      Alert.alert("Profile updated successfully!");
       setIsEditing(false);
     } catch (error) {
       console.error("Failed to update profile:", error);
@@ -96,9 +105,12 @@ const Profile = () => {
         text: "Delete",
         onPress: async () => {
           try {
-            await axios.delete(`https://actlocal-server.onrender.com/services`, {
-              data: { serviceId },
-            });
+            await axios.delete(
+              `https://actlocal-server.onrender.com/services`,
+              {
+                data: { serviceId },
+              }
+            );
             setServices((prev) =>
               prev.filter((service) => service._id !== serviceId)
             );
@@ -110,26 +122,45 @@ const Profile = () => {
     ]);
   };
 
-  return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: themecolor }}>
-      <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
+  const renderAvatar = (uri: string, isSelected: boolean) => (
+    <TouchableOpacity
+      key={uri}
+      onPress={() => handleChange("profilePicture", uri)}
+      style={[styles.avatarWrapper, isSelected && styles.selectedAvatarWrapper]}
+    >
+      <View style={styles.svgContainer}>
+        <SvgUri uri={uri} width="100%" height="100%" />
+      </View>
+    </TouchableOpacity>
+  );
 
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: bgcolor }}>
+      <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <ThemedView style={styles.profileHeader}>
-          <Image
-            source={{
-              uri: userProfile.profilePicture || "https://i.pravatar.cc/150?img=4",
-            }}
-            style={styles.profileImage}
-          />
-          <ThemedText style={[styles.nameText, { color: themetext }]}> 
+          {userProfile.profilePicture?.endsWith(".svg") ? (
+            <View style={styles.avatarCircle}>
+              <SvgUri
+                uri={userProfile.profilePicture}
+                width="100%"
+                height="100%"
+              />
+            </View>
+          ) : (
+            <Image
+              source={{ uri: userProfile.profilePicture }}
+              style={styles.profileImage}
+            />
+          )}
+          <ThemedText style={[styles.nameText, { color: themetext }]}>
             {userProfile.firstName} {userProfile.lastName}
           </ThemedText>
-          <ThemedText style={[styles.emailText, { color: themetext }]}> 
+          <ThemedText style={[styles.emailText, { color: themetext }]}>
             {userProfile.email}
           </ThemedText>
           {userProfile.bio && !isEditing && (
-            <ThemedText style={[styles.bioText, { color: themetext }]}> 
+            <ThemedText style={[styles.bioText, { color: themetext }]}>
               {userProfile.bio}
             </ThemedText>
           )}
@@ -137,41 +168,48 @@ const Profile = () => {
 
         {isEditing && (
           <ThemedView style={styles.formContainer}>
-            <ThemedText style={[styles.label, { color: themetext }]}>Select Avatar</ThemedText>
-            <ThemedView style={styles.avatarRow}>
-              {avatarOptions.map((uri) => (
-                <TouchableOpacity key={uri} onPress={() => handleChange("profilePicture", uri)}>
-                  <Image
-                    source={{ uri }}
-                    style={[styles.avatarImage, updatedProfile.profilePicture === uri && styles.selectedAvatar]}
-                  />
-                </TouchableOpacity>
-              ))}
-            </ThemedView>
+            <ThemedText style={[styles.label, { color: themetext }]}>
+              Select Avatar
+            </ThemedText>
+            <View style={styles.avatarRow}>
+              {avatarOptions.map((uri) =>
+                renderAvatar(uri, updatedProfile.profilePicture === uri)
+              )}
+            </View>
 
-            {[
-              { key: "firstName", placeholder: "First Name" },
-              { key: "userName", placeholder: "Username" },
-              { key: "phone", placeholder: "Phone", keyboardType: "phone-pad", maxLength: 10 },
-              { key: "address", placeholder: "Address" },
-              { key: "bio", placeholder: "Short Bio" },
-              { key: "email", placeholder: "Email" },
-            ].map((item) => (
-              <TextInput
-                key={item.key}
-                style={[styles.input, { backgroundColor: themecolor, color: themetext }]}
-                value={updatedProfile[item.key] || ""}
-                onChangeText={(text) => handleChange(item.key, text)}
-                placeholder={item.placeholder}
-                keyboardType={item.keyboardType || "default"}
-                maxLength={item.maxLength || undefined}
-              />
-            ))}
+            {["firstName", "userName", "phone", "address", "bio", "email"].map(
+              (key) => (
+                <TextInput
+                  key={key}
+                  style={[
+                    styles.input,
+                    { backgroundColor: themecolor, color: themetext },
+                  ]}
+                  value={updatedProfile[key] || ""}
+                  onChangeText={(text) => handleChange(key, text)}
+                  placeholder={key.replace(/([A-Z])/g, " $1").trim()}
+                  placeholderTextColor={
+                    colorScheme === "dark" ? "#888888" : "#999999"
+                  }
+                  keyboardType={
+                    key.toLowerCase().includes("phone")
+                      ? "phone-pad"
+                      : "default"
+                  }
+                />
+              )
+            )}
 
-            <TouchableOpacity style={styles.saveBtn} onPress={handleSaveProfile}>
+            <TouchableOpacity
+              style={styles.saveBtn}
+              onPress={handleSaveProfile}
+            >
               <ThemedText style={styles.buttonText}>Save</ThemedText>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.cancelBtn} onPress={handleCancelEdit}>
+            <TouchableOpacity
+              style={styles.cancelBtn}
+              onPress={handleCancelEdit}
+            >
               <ThemedText style={styles.buttonText}>Cancel</ThemedText>
             </TouchableOpacity>
           </ThemedView>
@@ -179,7 +217,10 @@ const Profile = () => {
 
         {!isEditing && (
           <>
-            <TouchableOpacity style={styles.editBtn} onPress={handleEditProfile}>
+            <TouchableOpacity
+              style={styles.editBtn}
+              onPress={handleEditProfile}
+            >
               <ThemedText style={styles.buttonText}>Edit Profile</ThemedText>
             </TouchableOpacity>
             <TouchableOpacity style={styles.logoutBtn} onPress={logout}>
@@ -189,13 +230,20 @@ const Profile = () => {
         )}
 
         <ThemedView style={styles.servicesContainer}>
-          <ThemedText style={[styles.sectionTitle, { color: themetext }]}>Your Services</ThemedText>
+          <ThemedText style={[styles.sectionTitle, { color: themetext }]}>
+            Your Services
+          </ThemedText>
           {loading ? (
             <ActivityIndicator size="large" color="#EF7A2A" />
           ) : services.length > 0 ? (
             services.map((item) => (
-              <View key={item._id} style={[styles.serviceCard, { backgroundColor: themecolor }]}>
-                <ThemedText style={[styles.serviceName, { color: themetext }]}>{item.name}</ThemedText>
+              <View
+                key={item._id}
+                style={[styles.serviceCard, { backgroundColor: themecolor }]}
+              >
+                <ThemedText style={[styles.serviceName, { color: themetext }]}>
+                  {item.name}
+                </ThemedText>
                 <TouchableOpacity
                   style={styles.deleteBtn}
                   onPress={() => handleDeleteService(item._id)}
@@ -205,7 +253,9 @@ const Profile = () => {
               </View>
             ))
           ) : (
-            <ThemedText style={{ color: themetext }}>No services found.</ThemedText>
+            <ThemedText style={{ color: themetext }}>
+              No services found.
+            </ThemedText>
           )}
         </ThemedView>
       </ScrollView>
@@ -215,12 +265,42 @@ const Profile = () => {
 
 const styles = StyleSheet.create({
   scrollContainer: { padding: 20 },
-  profileHeader: { alignItems: "center", marginBottom: 20 },
-  profileImage: { width: 100, height: 100, borderRadius: 50, marginBottom: 10 },
+  profileHeader: {
+    alignItems: "center",
+    marginBottom: 20,
+    padding: 10,
+    borderRadius: 34,
+    elevation: 5,
+  },
+  profileImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    marginBottom: 10,
+    backgroundColor: "#fff",
+  },
+  avatarCircle: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    overflow: "hidden",
+    backgroundColor: "#fff",
+    marginBottom: 10,
+  },
   nameText: { fontSize: 22, fontWeight: "bold" },
   emailText: { fontSize: 14, marginBottom: 4 },
-  bioText: { fontSize: 14, fontStyle: "italic", textAlign: "center", marginTop: 4 },
-  formContainer: { marginBottom: 20 },
+  bioText: {
+    fontSize: 14,
+    fontStyle: "italic",
+    textAlign: "center",
+    marginTop: 4,
+  },
+  formContainer: {
+    marginBottom: 20,
+    padding: 20,
+    borderRadius: 34,
+    elevation: 5,
+  },
   input: {
     borderWidth: 1,
     borderColor: "#ccc",
@@ -228,20 +308,79 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 10,
   },
-  label: { fontSize: 14, fontWeight: "bold", marginBottom: 8 },
-  avatarRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 10 },
-  avatarImage: { width: 60, height: 60, borderRadius: 30, borderWidth: 2, borderColor: "transparent" },
-  selectedAvatar: { borderColor: "#007BFF" },
-  saveBtn: { backgroundColor: "#28A745", padding: 12, borderRadius: 10, alignItems: "center", marginBottom: 10 },
-  cancelBtn: { backgroundColor: "#DC3545", padding: 12, borderRadius: 10, alignItems: "center" },
-  editBtn: { backgroundColor: "#007BFF", padding: 12, borderRadius: 10, alignItems: "center", marginBottom: 10 },
-  logoutBtn: { backgroundColor: "#EF7A2A", padding: 12, borderRadius: 10, alignItems: "center" },
-  buttonText: { color: "#fff", fontWeight: "bold" },
-  servicesContainer: { marginTop: 20 },
-  sectionTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 10 },
+  label: {
+    fontSize: 14,
+    fontWeight: "bold",
+    marginBottom: 8,
+  },
+  avatarRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    marginBottom: 16,
+    gap: 10,
+  },
+  avatarWrapper: {
+    padding: 4,
+    borderRadius: 34,
+    borderWidth: 2,
+    borderColor: "transparent",
+  },
+  selectedAvatarWrapper: {
+    borderColor: "#007BFF",
+    backgroundColor: "#E3F2FD",
+  },
+  svgContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    overflow: "hidden", // KEY PART FOR CIRCULAR MASKING
+    backgroundColor: "#fff",
+  },
+  saveBtn: {
+    backgroundColor: "#28A745",
+    padding: 12,
+    borderRadius: 35,
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  cancelBtn: {
+    backgroundColor: "#DC3545",
+    padding: 12,
+    borderRadius: 35,
+    alignItems: "center",
+  },
+  editBtn: {
+    backgroundColor: "#007BFF",
+    padding: 12,
+    borderRadius: 35,
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  logoutBtn: {
+    backgroundColor: "#EF7A2A",
+    padding: 12,
+    borderRadius: 35,
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
+  servicesContainer: {
+    marginTop: 20,
+    padding: 20,
+    borderRadius: 34,
+    elevation: 5,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
   serviceCard: {
     padding: 15,
-    borderRadius: 10,
+    borderRadius: 50,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
@@ -249,7 +388,12 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   serviceName: { fontSize: 16, fontWeight: "600" },
-  deleteBtn: { backgroundColor: "#DC3545", padding: 6, borderRadius: 6 },
+  deleteBtn: {
+    backgroundColor: "#DC3545",
+    elevation: 10,
+    padding: 6,
+    borderRadius: 50,
+  },
 });
 
 export default Profile;

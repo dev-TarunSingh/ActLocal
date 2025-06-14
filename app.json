@@ -13,7 +13,8 @@
 
     "ios": {
       "supportsTablet": true,
-      "jsEngine": "jsc"
+      "jsEngine": "jsc",
+      "bundleIdentifier": "com.devtarunsingh.ActLocal"
     },
     "android": {
       "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"],

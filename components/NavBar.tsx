@@ -11,23 +11,23 @@ import { router } from "expo-router";
 function NavBar() {
   const colorScheme = useColorScheme();
   const themeTextStyle =
-    colorScheme === "light" ? styles.lightThemeText : styles.darkThemeText;
+    colorScheme === "light" ?  "#000000" : "#ffffff";
   const themeContainerStyle =
     colorScheme === "light" ? styles.lightContainer : styles.darkContainer;
-  const iconColor = colorScheme === "light" ? "#000" : "#fff";
+  const iconColor = colorScheme === "light" ? "#000000" : "#ffffff";
   return (
     <ThemedView style={styles.navbarContainer}>
       <StatusBar />
       <ThemedView style={styles.navbar}>
         <TouchableOpacity>
-          <MagnifyingGlassIcon style={[styles.icon, themeTextStyle]} />
+          <MagnifyingGlassIcon style={styles.icon} color={iconColor} />
         </TouchableOpacity>
         <Image
           style={styles.logo}
           source={require("../assets/images/ActLocal-text.png")}
         />
         <TouchableOpacity>
-          <UserCircleIcon onPress={() => router.push('/Profile')} style={[styles.icon, themeTextStyle]} />
+          <UserCircleIcon onPress={() => router.push('/Profile')} style={styles.icon} color={iconColor} />
         </TouchableOpacity>
       </ThemedView>
     </ThemedView>
@@ -49,6 +49,7 @@ const styles = StyleSheet.create({
   },
   navbarContainer: {
     padding: 16,
+    borderRadius: 20
   },
   logo: {
     height: 20,

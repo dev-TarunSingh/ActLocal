@@ -1,5 +1,14 @@
 import React, { useEffect, useState, useContext, useCallback } from "react";
-import { View, Text, FlatList, TouchableOpacity, Button, RefreshControl, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  Button,
+  RefreshControl,
+  ScrollView,
+} from "react-native";
+import { SvgUri } from "react-native-svg";
 import { useRouter } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
 import AuthContext from "@/contexts/AuthContext";
@@ -25,8 +34,6 @@ const ChatListScreen = () => {
     }, [])
   );
 
-  
-
   const handleRefresh = () => {
     setRefreshing(true);
     fetchChatrooms()
@@ -41,43 +48,73 @@ const ChatListScreen = () => {
     <SafeAreaView>
       <NavBar />
       <FlatList
-      data={Array.isArray(chatrooms) ? chatrooms : []}
-      keyExtractor={(item) => item._id}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-      }
-      contentContainerStyle={{ flexGrow: 1 }}
-      ListEmptyComponent={
-        <ThemedView style={{ alignItems: "center", marginTop: 20 }}>
-        <ThemedText style={{ fontSize: 16, color: textColor }}>
-          No chatrooms available. Start a new conversation!
-        </ThemedText>
-        </ThemedView>
-      }
-      renderItem={({ item }) => (
-        <TouchableOpacity
-        style={{
-          padding: 16,
-          margin: 10,
-          borderRadius: 24,
-          backgroundColor: themecolor,
-          elevation: 3,
-        }}
-        onPress={() =>
-          router.push({
-          pathname: "/ChatScreen",
-          params: { chatroomId: item._id },
-          })
+        data={Array.isArray(chatrooms) ? chatrooms : []}
+        keyExtractor={(item) => item._id}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
-        >
-        <ThemedText style={{ fontSize: 16, fontWeight: "bold" }}>
-          {item.participants?.[0]?.firstName || "Unknown User"}
-        </ThemedText>
-        <ThemedText style={{ color: "#666" }}>
-          {item.lastMessage?.text || "No messages yet"}
-        </ThemedText>
-        </TouchableOpacity>
-      )}
+        contentContainerStyle={{ flexGrow: 1 }}
+        ListEmptyComponent={
+          <ThemedView
+            style={{
+              alignItems: "center",
+              margin: 20,
+              padding: 20,
+              elevation: 2,
+              borderRadius: 35,
+            }}
+          >
+            <ThemedText style={{ fontSize: 16, color: textColor }}>
+              No chatrooms available. Start a new conversation!
+            </ThemedText>
+          </ThemedView>
+        }
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={{
+              padding: 16,
+              margin: 10,
+              borderRadius: 34,
+              backgroundColor: themecolor,
+              elevation: 3,
+              flexDirection: "row",
+              alignItems: "center",
+            }}
+            onPress={() =>
+              router.push({
+                pathname: "/ChatScreen",
+                params: { chatroomId: item._id },
+              })
+            }
+          >
+            <SvgUri
+              uri={
+                item.participants?.[0]?.profilePicture ||
+                "https://actlocal-server.onrender.com/avatars/1.svg"
+              }
+              width={50}
+              height={50}
+            />
+            <View>
+              <ThemedText
+                style={{
+                  fontSize: 18,
+                  marginLeft: 10
+                }}
+              >
+                {item.participants?.[0]?.firstName || "Unknown User"}
+              </ThemedText>
+              <ThemedText
+                style={{
+                  fontSize: 14,
+                  marginLeft: 10
+                }}
+              >
+                {item.lastMessage?.text || "No messages yet"}
+              </ThemedText>
+            </View>
+          </TouchableOpacity>
+        )}
       />
     </SafeAreaView>
   );

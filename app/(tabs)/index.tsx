@@ -20,6 +20,7 @@ import axios from "axios";
 import { useChat } from "@/contexts/ChatContext";
 import AuthContext from "../../contexts/AuthContext";
 import Spinner from "@/components/Spinner";
+import { SvgUri } from "react-native-svg";
 
 export default function HomeScreen() {
   const { PermissionGranted, longitude, latitude, getUserLocation, errorMsg } =
@@ -253,10 +254,49 @@ export default function HomeScreen() {
                 <ThemedText style={styles.postDescription}>
                   {post.description}
                 </ThemedText>
-                <ThemedText>₹ {post.servicePrice}</ThemedText>
-                <ThemedText>
-                  {post.postedBy ? post.postedBy.firstName : "Unknown"}
-                </ThemedText>
+
+                <ThemedView
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    borderRadius: 20,
+                  }}
+                >
+                  <ThemedView
+                    style={{
+                      marginRight: 10,
+                      padding: 5,
+                      borderRadius: 20,
+                      paddingTop: 10,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <ThemedView
+                      style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: 20, // Half of width/height
+                        overflow: "hidden",
+                        backgroundColor: "#fff", // Optional: fallback background
+                      }}
+                    >
+                      <SvgUri
+                        width="100%"
+                        height="100%"
+                        uri={post.postedBy.profilePicture}
+                      />
+                    </ThemedView>
+                    <ThemedText style={{ marginLeft: 10 }}>
+                      {post.postedBy?.firstName || "Unknown User"}
+                    </ThemedText>
+                  </ThemedView>
+                  <ThemedView style={{ flexDirection: "row", alignItems: "center", backgroundColor: "#EF7A2A", padding: 5, borderRadius: 20 }}>
+                    <ThemedText style={{fontWeight: "bold"}}>₹ {post.servicePrice}</ThemedText>
+                  </ThemedView>
+                </ThemedView>
               </Pressable>
             </ThemedView>
           ))
@@ -300,13 +340,13 @@ const styles = StyleSheet.create({
   postItem: {
     padding: 16,
     margin: 10,
-    borderRadius: 10,
+    borderRadius: 35,
     borderBottomColor: "#ccc",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 24,
-    elevation: 3,
+    elevation: 5,
   },
   postTitle: {
     fontSize: 18,
