@@ -8,6 +8,11 @@ import {
   ActivityIndicator,
   View,
   Pressable,
+  Animated,
+  Easing,
+  LayoutAnimation,
+  UIManager,
+  Platform,
 } from "react-native";
 import NavBar from "../../components/NavBar";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -36,7 +41,15 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [posts, setPosts] = useState<any[]>([]);
+  
   const [locationError, setLocationError] = useState<string | null>(null);
+
+  if (
+    Platform.OS === "android" &&
+    UIManager.setLayoutAnimationEnabledExperimental
+  ) {
+    UIManager.setLayoutAnimationEnabledExperimental(true);
+  }
 
   const checkInternetConnection = async () => {
     try {
@@ -261,14 +274,12 @@ export default function HomeScreen() {
                     alignItems: "center",
                     justifyContent: "space-between",
                     borderRadius: 20,
+                    paddingTop: 10,
                   }}
                 >
                   <ThemedView
                     style={{
-                      marginRight: 10,
-                      padding: 5,
                       borderRadius: 20,
-                      paddingTop: 10,
                       flexDirection: "row",
                       alignItems: "center",
                       justifyContent: "center",
@@ -293,8 +304,18 @@ export default function HomeScreen() {
                       {post.postedBy?.firstName || "Unknown User"}
                     </ThemedText>
                   </ThemedView>
-                  <ThemedView style={{ flexDirection: "row", alignItems: "center", backgroundColor: "#EF7A2A", padding: 5, borderRadius: 20 }}>
-                    <ThemedText style={{fontWeight: "bold"}}>₹ {post.servicePrice}</ThemedText>
+                  <ThemedView
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      backgroundColor: "#EF7A2A",
+                      padding: 5,
+                      borderRadius: 20,
+                    }}
+                  >
+                    <ThemedText style={{ fontWeight: "bold" }}>
+                      ₹ {post.servicePrice}
+                    </ThemedText>
                   </ThemedView>
                 </ThemedView>
               </Pressable>
@@ -362,19 +383,19 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
     justifyContent: "flex-end",
     zIndex: 1000,
   },
   popupContainer: {
     padding: 20,
     width: "100%",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderRadius: 20,
+    marginBottom: 10,
     elevation: 5,
   },
   popupTitle: {
-    fontSize: 20,
+    fontSize: 30,
     fontWeight: "bold",
     marginBottom: 10,
   },

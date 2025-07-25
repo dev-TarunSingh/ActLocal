@@ -87,7 +87,8 @@ const ChatListScreen = () => {
               })
             }
           >
-            <SvgUri
+            <View style={{ marginRight: 10, borderRadius: 25, overflow: "hidden" }}>
+              <SvgUri
               uri={
                 item.participants?.[0]?.profilePicture ||
                 "https://actlocal-server.onrender.com/avatars/1.svg"
@@ -95,6 +96,7 @@ const ChatListScreen = () => {
               width={50}
               height={50}
             />
+            </View>
             <View>
               <ThemedText
                 style={{

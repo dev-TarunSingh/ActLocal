@@ -20,7 +20,7 @@ function NavBar() {
       <StatusBar />
       <ThemedView style={styles.navbar}>
         <TouchableOpacity>
-          <MagnifyingGlassIcon style={styles.icon} color={iconColor} />
+          <MagnifyingGlassIcon style={styles.icon} color={iconColor} onPress={() => router.push('/Search')} />
         </TouchableOpacity>
         <Image
           style={styles.logo}

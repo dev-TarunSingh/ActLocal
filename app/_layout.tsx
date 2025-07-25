@@ -31,13 +31,12 @@ export default function RootLayout() {
 
   const requestAllPermissions = async () => {
     try {
-
       const { status: mediaLibraryStatus } =
         await MediaLibrary.requestPermissionsAsync();
       const { status: locationStatus } =
         await Location.requestForegroundPermissionsAsync();
 
-      if ( locationStatus === "granted" && mediaLibraryStatus === "granted") {
+      if (locationStatus === "granted" && mediaLibraryStatus === "granted") {
         setPermissionsGranted(true);
       } else {
         console.warn("Some permissions not granted");
@@ -58,7 +57,6 @@ export default function RootLayout() {
           await Updates.fetchUpdateAsync();
           await Updates.reloadAsync(); // restarts app
         }
-      
       } catch (e) {
         console.log("Update check failed:", e);
       }
@@ -122,11 +120,10 @@ export default function RootLayout() {
           <ChatProvider>
             <Stack>
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              {/* <Stack.Screen name="Post" options={{ headerShown: false }} />
-            <Stack.Screen name="Chat" options={{ headerShown: false }} /> */}
               <Stack.Screen name="ChatScreen" options={{ headerShown: true }} />
               <Stack.Screen name="Login" options={{ headerShown: false }} />
               <Stack.Screen name="Signup" options={{ headerShown: false }} />
+              <Stack.Screen name="Search" options={{ headerShown: false }} />
               <Stack.Screen
                 name="ForgotCredentials"
                 options={{ headerShown: false }}
