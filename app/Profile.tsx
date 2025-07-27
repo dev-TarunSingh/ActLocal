@@ -69,7 +69,7 @@ const Profile = () => {
       }
     };
     fetchServices();
-  }, [userProfile._id]);
+  }, [userProfile]);
 
   const handleEditProfile = () => setIsEditing(true);
 

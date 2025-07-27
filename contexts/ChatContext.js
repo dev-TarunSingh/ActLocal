@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { io } from "socket.io-client";
 import axios from "axios";
 import AuthContext from "@/contexts/AuthContext";
+import socket from "@/socket"; // shared socket instance
 
 const ChatContext = createContext();
 
@@ -9,32 +9,34 @@ export const useChat = () => useContext(ChatContext);
 
 export const ChatProvider = ({ children }) => {
   const { userProfile, loading } = useContext(AuthContext);
+  const { showPopup } = usePopup(); // assuming PopupContext is available
   const [chatrooms, setChatrooms] = useState([]);
-  const [messages, setMessages] = useState({}); // Initialize as an empty object
-  const [socket, setSocket] = useState(null);
+  const [messages, setMessages] = useState({}); // { chatroomId: [message, ...] }
 
   useEffect(() => {
-    if (loading || !userProfile) return; // Wait for userProfile to load
+    if (loading || !userProfile) return;
 
-    const newSocket = io("https://actlocal-server.onrender.com");
-    setSocket(newSocket);
+    socket.connect(); // manually initiate connection
+    socket.emit("join", userProfile._id);
 
-    newSocket.emit("join", userProfile._id);
-
-    // Handle new incoming messages
-    newSocket.on("newMessage", (message) => {
-      if (message && message.chatroomId) {
+    const handleNewMessage = (message) => {
+      if (message?.chatroomId) {
         setMessages((prev) => ({
           ...prev,
-          [message.chatroomId]: [...(prev[message.chatroomId] || []), message], // Append new messages
+          [message.chatroomId]: [...(prev[message.chatroomId] || []), message],
         }));
+
+        showPopup({
+          senderName: message.senderName,
+          text: message.text,
+          chatroomId: message.chatroomId,
+        });
       } else {
         console.error("Invalid message received:", message);
       }
-    });
+    };
 
-    // Handle missed messages when user reconnects
-    newSocket.on("missedMessages", ({ chatroomId, messages: missed }) => {
+    const handleMissedMessages = ({ chatroomId, messages: missed }) => {
       if (chatroomId && Array.isArray(missed)) {
         setMessages((prev) => ({
           ...prev,
@@ -46,13 +48,19 @@ export const ChatProvider = ({ children }) => {
           missed,
         });
       }
-    });
+    };
 
-    return () => newSocket.disconnect();
+    socket.on("newMessage", handleNewMessage);
+    socket.on("missedMessages", handleMissedMessages);
+
+    return () => {
+      socket.off("newMessage", handleNewMessage);
+      socket.off("missedMessages", handleMissedMessages);
+    };
   }, [userProfile, loading]);
 
   const fetchChatrooms = async () => {
-    if (!userProfile) return; // Ensure userProfile is available
+    if (!userProfile) return;
 
     try {
       console.log("Fetching Chatrooms for user:", userProfile._id);
@@ -62,14 +70,14 @@ export const ChatProvider = ({ children }) => {
       );
 
       if (Array.isArray(res.data)) {
-        setChatrooms(res.data); // Only set state if it's a valid array
+        setChatrooms(res.data);
       } else {
-        console.error("Error: Expected an array but got:", res.data);
-        setChatrooms([]); // Prevent app from breaking
+        console.error("Expected array but got:", res.data);
+        setChatrooms([]);
       }
     } catch (error) {
       console.error("Error fetching chatrooms:", error);
-      setChatrooms([]); // Handle errors gracefully
+      setChatrooms([]);
     }
   };
 
@@ -82,18 +90,20 @@ export const ChatProvider = ({ children }) => {
       const messagesArray = Array.isArray(res.data) ? res.data : [];
       setMessages((prev) => ({
         ...prev,
-        [chatroomId]: messagesArray, // Replace with the fetched messages
+        [chatroomId]: messagesArray,
       }));
     } catch (error) {
       console.error("Error fetching messages:", error);
-      // Ensure chatroomId key exists even on error
     }
   };
 
   const sendMessage = (chatroomId, text) => {
     if (socket && userProfile) {
-      console.log("sending msg");
-      socket.emit("sendMessage", { chatroomId, sender: userProfile._id, text });
+      socket.emit("sendMessage", {
+        chatroomId,
+        sender: userProfile._id,
+        text,
+      });
     }
   };
 
@@ -106,6 +116,7 @@ export const ChatProvider = ({ children }) => {
         getMessages,
         sendMessage,
         setMessages,
+        socket, // optional if needed outside
       }}
     >
       {children}

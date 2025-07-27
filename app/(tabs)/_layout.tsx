@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import React from "react";
+import React, { useContext, useEffect } from "react";
 import { Platform } from "react-native";
 
 import { HapticTab } from "@/components/HapticTab";
@@ -9,9 +9,41 @@ import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import Feather from "@expo/vector-icons/Feather";
 import BlurTabBarBackground from "@/components/ui/TabBarBackground.ios";
+import AuthContext from "@/contexts/AuthContext";
+import socket from "@/socket";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const { userProfile } = useContext(AuthContext);
+
+  useEffect(() => {
+    if (userProfile?._id) {
+      if (!socket.connected) {
+        socket.connect();
+      }
+      socket.emit("join", userProfile._id);
+      console.log("🔌 Socket connected and joined:", userProfile._id);
+    }
+
+    const handleReconnect = () => {
+      if (userProfile?._id) {
+        socket.emit("join", userProfile._id);
+        console.log("🔁 Re-joined after reconnect:", userProfile._id);
+      }
+    };
+
+    socket.on("connect", handleReconnect);
+
+    return () => {
+      socket.off("connect", handleReconnect);
+    };
+  }, [userProfile]);
+
+  useEffect(() => {
+    if (!userProfile && socket.connected) {
+      socket.disconnect();
+    }
+  }, [userProfile]);
 
   return (
     <Tabs

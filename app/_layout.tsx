@@ -3,12 +3,12 @@ import {
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
-import React from "react";
+import React, { useRef } from "react";
 import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
+import { router, Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -17,12 +17,19 @@ import { useColorScheme } from "@/hooks/useColorScheme";
 import * as MediaLibrary from "expo-media-library";
 import * as Location from "expo-location";
 import * as Updates from "expo-updates";
-import { Pressable } from "react-native";
+import { Platform, Pressable } from "react-native";
+import * as Notifications from "expo-notifications";
+import PushNotificationHandler from "@/components/PushNotificationHandler";
+import { PopupProvider } from "@/contexts/PopupContext";
+import { usePopup } from "@/contexts/PopupContext";
+import MessagePopup from "@/components/MessagePopup";
+import socket from "@/socket";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  const { visible, message } = usePopup();
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
@@ -61,6 +68,7 @@ export default function RootLayout() {
         console.log("Update check failed:", e);
       }
     };
+
     requestAllPermissions();
     updateApp();
   }, []);
@@ -118,20 +126,39 @@ export default function RootLayout() {
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
         <AuthProvider>
           <ChatProvider>
-            <Stack>
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="ChatScreen" options={{ headerShown: true }} />
-              <Stack.Screen name="Login" options={{ headerShown: false }} />
-              <Stack.Screen name="Signup" options={{ headerShown: false }} />
-              <Stack.Screen name="Search" options={{ headerShown: false }} />
-              <Stack.Screen
-                name="ForgotCredentials"
-                options={{ headerShown: false }}
+            <PopupProvider>
+              <PushNotificationHandler />
+              <MessagePopup
+                visible={visible}
+                message={message}
+                onPress={() => {
+                  if (message?.chatroomId) {
+                    router.push(`/chat/${message.chatroomId}`);
+                  }
+                }}
               />
-              <Stack.Screen name="Profile" options={{ headerShown: false }} />
-              <Stack.Screen name="+not-found" />
-            </Stack>
-            <StatusBar style="auto" />
+              <Stack>
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen
+                  name="ChatScreen"
+                  options={{ headerShown: true }}
+                />
+                <Stack.Screen name="Login" options={{ headerShown: false }} />
+                <Stack.Screen name="Signup" options={{ headerShown: false }} />
+                <Stack.Screen name="Search" options={{ headerShown: false }} />
+                <Stack.Screen
+                  name="ForgotCredentials"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen name="Profile" options={{ headerShown: false }} />
+                <Stack.Screen
+                  name="UserProfile"
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen name="+not-found" />
+              </Stack>
+              <StatusBar style="auto" />
+            </PopupProvider>
           </ChatProvider>
         </AuthProvider>
       </ThemeProvider>

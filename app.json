@@ -2,14 +2,14 @@
   "expo": {
     "name": "ActLocal",
     "slug": "ActLocal",
-    "version": "1.2.10",
+    "version": "1.3.10",
     "orientation": "portrait",
     "icon": "./assets/images/ActLocal-Logo.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "jsEngine": "hermes",
-    "sdkVersion": "52.0.0",
+    "sdkVersion": "53.0.0",
 
     "ios": {
       "supportsTablet": true,
@@ -17,14 +17,18 @@
       "bundleIdentifier": "com.devtarunsingh.ActLocal"
     },
     "android": {
-      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"],
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "NOTIFICATIONS"
+      ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/ActLocal-Logo.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.devtarunsingh.ActLocal",
       "runtimeVersion": {
-        "policy":"appVersion"
+        "policy": "appVersion"
       }
     },
     "web": {
@@ -34,6 +38,7 @@
     },
     "plugins": [
       "expo-router",
+      "expo-notifications",
       [
         "expo-splash-screen",
         {
